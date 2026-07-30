@@ -232,8 +232,15 @@ class QuizGame:
             self.output("⚠️ 퀴즈는 추가되었지만 파일 저장에 실패했습니다.")
 
     def list_quizzes(self) -> None:
-        """퀴즈 목록 기능이 연결될 자리."""
-        self.output("\n퀴즈 목록 기능을 준비하고 있습니다.")
+        """저장된 문제와 선택지, 정답을 순서대로 보여 준다."""
+        if not self.quizzes:
+            self.output("\n등록된 퀴즈가 없습니다.")
+            return
+
+        self.output(f"\n📚 저장된 퀴즈 목록 (총 {len(self.quizzes)}개)")
+        for number, quiz in enumerate(self.quizzes, start=1):
+            self.output(f"\n{quiz.format_question(number)}")
+            self.output(f"정답: {quiz.answer}번")
 
     def show_best_score(self) -> None:
         """점수 확인 기능이 연결될 자리."""
