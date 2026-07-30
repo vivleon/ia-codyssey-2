@@ -159,3 +159,13 @@ git log --oneline --graph --decorate --all
 
 > ✅ clone/pull 실습 완료: 별도 복제본의 문서 변경을 원격을 통해 기존
 > 작업 폴더에 반영했습니다.
+
+## 제출용 스크린샷
+
+| 증빙 | 이미지 |
+| --- | --- |
+| Python 3.13 개발 환경과 테스트 | [01-development-environment.png](docs/screenshots/01-development-environment.png) |
+| 퀴즈 추가 및 저장 | [02-add-quiz.png](docs/screenshots/02-add-quiz.png) |
+| 퀴즈 목록 | [03-quiz-list.png](docs/screenshots/03-quiz-list.png) |
+| 퀴즈 플레이와 최고 점수 | [04-play-and-score.png](docs/screenshots/04-play-and-score.png) |
+| Git 커밋·브랜치 그래프 | [05-git-log-graph.png](docs/screenshots/05-git-log-graph.png) |
