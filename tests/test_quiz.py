@@ -1,0 +1,39 @@
+"""Quiz 모델 단위 테스트."""
+
+import unittest
+
+from quiz import Quiz
+
+
+class QuizTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.quiz = Quiz(
+            "Python에서 목록을 표현하는 자료형은?",
+            ["int", "str", "list", "bool"],
+            3,
+        )
+
+    def test_checks_answer(self) -> None:
+        self.assertTrue(self.quiz.is_correct(3))
+        self.assertFalse(self.quiz.is_correct(1))
+
+    def test_round_trip_dictionary(self) -> None:
+        restored = Quiz.from_dict(self.quiz.to_dict())
+        self.assertEqual(restored, self.quiz)
+
+    def test_rejects_invalid_choice_count(self) -> None:
+        with self.assertRaises(ValueError):
+            Quiz("문제", ["하나", "둘"], 1)
+
+    def test_rejects_duplicate_choices(self) -> None:
+        with self.assertRaises(ValueError):
+            Quiz("문제", ["같음", "같음", "셋", "넷"], 1)
+
+    def test_formats_question(self) -> None:
+        rendered = self.quiz.format_question(2)
+        self.assertIn("[문제 2]", rendered)
+        self.assertIn("3. list", rendered)
+
+
+if __name__ == "__main__":
+    unittest.main()
