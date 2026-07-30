@@ -147,6 +147,14 @@ class QuizGame:
                 continue
             return value
 
+    def _read_non_empty(self, prompt: str) -> str:
+        """공백이 아닌 문자열을 입력할 때까지 다시 묻는다."""
+        while True:
+            value = self.input(prompt).strip()
+            if value:
+                return value
+            self.output("내용을 입력해 주세요.")
+
     def play_quiz(self) -> None:
         """모든 퀴즈를 무작위 순서로 출제하고 최고 점수를 갱신한다."""
         if not self.quizzes:
@@ -202,8 +210,26 @@ class QuizGame:
         return candidate_key > current_key
 
     def add_quiz(self) -> None:
-        """퀴즈 등록 기능이 연결될 자리."""
-        self.output("\n퀴즈 추가 기능을 준비하고 있습니다.")
+        """문제, 선택지 네 개, 정답 번호를 입력받아 저장한다."""
+        self.output("\n📌 새로운 퀴즈를 추가합니다.")
+        question = self._read_non_empty("문제를 입력하세요: ")
+        choices: List[str] = []
+
+        for number in range(1, 5):
+            while True:
+                choice = self._read_non_empty(f"선택지 {number}: ")
+                if choice in choices:
+                    self.output("이미 입력한 선택지입니다. 다른 내용을 입력해 주세요.")
+                    continue
+                choices.append(choice)
+                break
+
+        answer = self._read_int("정답 번호 (1-4): ", 1, 4)
+        self.quizzes.append(Quiz(question, choices, answer))
+        if self.save_state():
+            self.output("✅ 퀴즈가 추가되고 저장되었습니다!")
+        else:
+            self.output("⚠️ 퀴즈는 추가되었지만 파일 저장에 실패했습니다.")
 
     def list_quizzes(self) -> None:
         """퀴즈 목록 기능이 연결될 자리."""
