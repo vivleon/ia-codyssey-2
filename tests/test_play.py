@@ -1,11 +1,18 @@
 """퀴즈 출제와 점수 계산 테스트."""
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from quiz_game import QuizGame
 
 
 class PlayQuizTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary_directory = TemporaryDirectory()
+        self.addCleanup(self.temporary_directory.cleanup)
+        self.state_file = Path(self.temporary_directory.name) / "state.json"
+
     def make_game(self, answers):
         messages = []
         answer_iterator = iter(answers)
@@ -13,6 +20,7 @@ class PlayQuizTest(unittest.TestCase):
             input_func=lambda _: next(answer_iterator),
             output_func=messages.append,
             shuffle_func=lambda _: None,
+            state_file=self.state_file,
         )
         game.quizzes = game.quizzes[:2]
         return game, messages

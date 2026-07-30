@@ -1,15 +1,26 @@
 """메뉴와 공통 입력 처리 테스트."""
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from quiz_game import QuizGame
 
 
 class MenuTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary_directory = TemporaryDirectory()
+        self.addCleanup(self.temporary_directory.cleanup)
+        self.state_file = Path(self.temporary_directory.name) / "state.json"
+
     def test_integer_input_retries_empty_text_and_out_of_range(self) -> None:
         answers = iter([" ", "abc", "9", " 3 "])
         messages = []
-        game = QuizGame(input_func=lambda _: next(answers), output_func=messages.append)
+        game = QuizGame(
+            input_func=lambda _: next(answers),
+            output_func=messages.append,
+            state_file=self.state_file,
+        )
 
         value = game._read_int("선택: ", 1, 5)
 
@@ -20,7 +31,11 @@ class MenuTest(unittest.TestCase):
 
     def test_menu_exits_normally(self) -> None:
         messages = []
-        game = QuizGame(input_func=lambda _: "5", output_func=messages.append)
+        game = QuizGame(
+            input_func=lambda _: "5",
+            output_func=messages.append,
+            state_file=self.state_file,
+        )
 
         game.run()
 
@@ -32,7 +47,11 @@ class MenuTest(unittest.TestCase):
             raise EOFError
 
         messages = []
-        game = QuizGame(input_func=raise_eof, output_func=messages.append)
+        game = QuizGame(
+            input_func=raise_eof,
+            output_func=messages.append,
+            state_file=self.state_file,
+        )
 
         game.run()
 
