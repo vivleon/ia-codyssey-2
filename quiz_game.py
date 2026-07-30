@@ -243,5 +243,14 @@ class QuizGame:
             self.output(f"정답: {quiz.answer}번")
 
     def show_best_score(self) -> None:
-        """점수 확인 기능이 연결될 자리."""
-        self.output("\n점수 확인 기능을 준비하고 있습니다.")
+        """현재 저장된 최고 점수를 보여 준다."""
+        if self.best_score is None:
+            self.output("\n아직 퀴즈를 풀지 않았습니다.")
+            return
+
+        self.output("\n🏅 최고 점수")
+        self.output(
+            f"{self.best_score['total']}문제 중 "
+            f"{self.best_score['correct']}문제 정답 "
+            f"({self.best_score['percentage']}점)"
+        )
