@@ -156,3 +156,6 @@ git log --oneline --graph --decorate --all
 
 이 명령으로 기능별 커밋, `codex/quiz-play` 브랜치, 병합 커밋을 확인할 수
 있습니다.
+
+> ✅ clone/pull 실습 완료: 별도 복제본의 문서 변경을 원격을 통해 기존
+> 작업 폴더에 반영했습니다.
