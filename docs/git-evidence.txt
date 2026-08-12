@@ -1,0 +1,44 @@
+IA Codyssey Quiz Game - Git Evidence
+Verified: 2026-08-12
+Snapshot: before the pre-evaluation improvement commit
+
+$ git remote get-url origin
+https://github.com/vivleon/ia-codyssey-2.git
+
+$ git branch --show-current
+main
+
+$ git rev-list --count HEAD
+18
+
+$ git ls-remote --heads origin
+2428fde31a8ae2803dd2a7613e45767a81863636 refs/heads/codex/quiz-play
+428e40d7123936621c2851b98e0489d8f977b147 refs/heads/main
+
+$ git log --oneline --graph --decorate --all
+* 428e40d (HEAD -> main, origin/main, origin/HEAD) Docs: 제출용 실행 증빙 스크린샷 추가
+* 272f5fe Docs: clone과 pull 실습 완료 기록
+* 5ed0d54 Docs: 실행 방법과 구조 및 데이터 설명 작성
+* f2c8f2d Data: 기본 퀴즈 상태 파일 추가
+* 385e234 Test: 영속성과 등록 조회 통합 검증 추가
+* ca3fa18 Feat: 최고 점수 조회 화면 구현
+* aa7cbaa Feat: 저장된 퀴즈 목록 조회 구현
+* f4f7162 Test: 상태 파일을 임시 경로로 격리
+* 3f0639b Feat: 입력 검증을 포함한 퀴즈 추가 구현
+* 28ff3a3 Feat: state.json 영속성과 손상 복구 구현
+*   9a0d68d Merge: 퀴즈 플레이 브랜치 통합
+|\
+| * 2428fde (origin/codex/quiz-play, codex/quiz-play) Test: 퀴즈 플레이와 최고 점수 검증 추가
+| * 13788ad Feat: 무작위 퀴즈 출제와 채점 구현
+|/
+* 707b039 Feat: 안전한 메뉴와 공통 입력 처리 구현
+* 738b404 Feat: AI와 Python 기본 퀴즈 6개 추가
+* 2708c52 Feat: Quiz 모델과 검증 로직 구현
+* 744d5dc Chore: Python 프로젝트 구조 설정
+* 2db2fa5 Initial commit
+
+Result:
+- Remote repository is configured and reachable.
+- The main branch contains 18 meaningful commits, exceeding the required 10.
+- The codex/quiz-play branch and the non-fast-forward merge are visible in history.
+- Committing the pre-evaluation improvements will increase the count to 19 or more.

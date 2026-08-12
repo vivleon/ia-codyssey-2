@@ -2,6 +2,8 @@
 
 import json
 import random
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Callable, List, Optional
 
@@ -13,6 +15,7 @@ class QuizGame:
     """퀴즈 목록, 점수, 사용자 입력 흐름을 관리한다."""
 
     STATE_FILE = Path(__file__).resolve().with_name("state.json")
+    BACKUP_LIMIT = 3
 
     MENU = """
 ========================================
@@ -86,9 +89,39 @@ class QuizGame:
             self.output(
                 f"상태 파일을 읽을 수 없어 기본 데이터로 복구합니다: {error}"
             )
+            backup_path = self._backup_invalid_state()
+            if backup_path is not None:
+                self.output(f"기존 상태 파일 백업: {backup_path}")
             self.quizzes = build_default_quizzes()
             self.best_score = None
             self.save_state()
+
+    def _backup_invalid_state(self) -> Optional[Path]:
+        """복구 전에 잘못된 상태 파일을 최대 세 개까지 보관한다."""
+        if not self.state_file.exists():
+            return None
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        backup_path = self.state_file.with_name(
+            f"{self.state_file.name}.broken-{timestamp}.bak"
+        )
+        try:
+            shutil.copy2(self.state_file, backup_path)
+        except OSError as error:
+            self.output(f"기존 상태 파일을 백업하지 못했습니다: {error}")
+            return None
+
+        backup_pattern = f"{self.state_file.name}.broken-*.bak"
+        backups = sorted(
+            self.state_file.parent.glob(backup_pattern),
+            reverse=True,
+        )
+        for expired_backup in backups[self.BACKUP_LIMIT :]:
+            try:
+                expired_backup.unlink()
+            except OSError as error:
+                self.output(f"오래된 상태 백업을 정리하지 못했습니다: {error}")
+        return backup_path
 
     def save_state(self) -> bool:
         """현재 퀴즈와 최고 점수를 UTF-8 JSON 파일에 원자적으로 저장한다."""
@@ -106,6 +139,10 @@ class QuizGame:
             return True
         except OSError as error:
             self.output(f"상태 파일을 저장하지 못했습니다: {error}")
+            self.output(f"저장 대상: {self.state_file}")
+            self.output(
+                f"임시 파일이 남아 있다면 내용을 확인하세요: {temporary_file}"
+            )
             return False
 
     @staticmethod

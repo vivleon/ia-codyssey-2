@@ -40,6 +40,25 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertEqual(len(restored.quizzes), len(game.quizzes))
         self.assertEqual(restored.best_score, game.best_score)
 
+    def test_save_failure_reports_target_and_temporary_paths(self) -> None:
+        blocked_parent = Path(self.temporary_directory.name) / "not-a-directory"
+        blocked_parent.write_text("file", encoding="utf-8")
+        messages = []
+        game = QuizGame(
+            output_func=messages.append,
+            state_file=blocked_parent / "state.json",
+        )
+
+        self.assertFalse(game.save_state())
+        self.assertTrue(
+            any(
+                "상태 파일을 저장하지 못했습니다" in message
+                for message in messages
+            )
+        )
+        self.assertTrue(any("저장 대상" in message for message in messages))
+        self.assertTrue(any("임시 파일" in message for message in messages))
+
     def test_corrupted_state_recovers_and_rewrites_valid_json(self) -> None:
         self.state_file.write_text("{broken", encoding="utf-8")
 
@@ -47,9 +66,32 @@ class GameFeaturesTest(unittest.TestCase):
 
         self.assertGreaterEqual(len(game.quizzes), 5)
         self.assertTrue(any("기본 데이터로 복구" in message for message in messages))
+        backups = list(
+            self.state_file.parent.glob("state.json.broken-*.bak")
+        )
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_text(encoding="utf-8"), "{broken")
+        self.assertTrue(any("기존 상태 파일 백업" in message for message in messages))
         with self.state_file.open(encoding="utf-8") as state_handle:
             repaired = json.load(state_handle)
         self.assertIn("quizzes", repaired)
+
+    def test_corrupted_state_keeps_only_three_recent_backups(self) -> None:
+        for index in range(5):
+            self.state_file.write_text(f"{{broken-{index}", encoding="utf-8")
+            self.make_game()
+
+        backups = list(
+            self.state_file.parent.glob("state.json.broken-*.bak")
+        )
+        self.assertEqual(len(backups), QuizGame.BACKUP_LIMIT)
+        backup_contents = {
+            backup.read_text(encoding="utf-8") for backup in backups
+        }
+        self.assertEqual(
+            backup_contents,
+            {"{broken-2", "{broken-3", "{broken-4"},
+        )
 
     def test_add_quiz_retries_invalid_values_and_persists(self) -> None:
         answers = [
