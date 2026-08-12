@@ -3,6 +3,7 @@
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from quiz_game import QuizGame
 
@@ -35,6 +36,31 @@ class PlayQuizTest(unittest.TestCase):
             {"correct": 2, "total": 2, "percentage": 100},
         )
         self.assertTrue(any("새로운 최고 점수" in message for message in messages))
+
+    def test_new_best_score_is_saved_immediately(self) -> None:
+        game, messages = self.make_game(["2", "1"])
+
+        game.play_quiz()
+        restored = QuizGame(
+            output_func=lambda _: None,
+            state_file=self.state_file,
+        )
+
+        self.assertEqual(restored.best_score, game.best_score)
+        self.assertTrue(
+            any("상태 파일에 저장되었습니다" in message for message in messages)
+        )
+
+    def test_new_best_score_reports_immediate_save_failure(self) -> None:
+        game, messages = self.make_game(["2", "1"])
+
+        with patch.object(game, "save_state", return_value=False):
+            game.play_quiz()
+
+        self.assertEqual(game.best_score["percentage"], 100)
+        self.assertTrue(
+            any("최고 점수는 갱신되었지만" in message for message in messages)
+        )
 
     def test_lower_score_does_not_replace_best(self) -> None:
         game, _ = self.make_game(["1", "1"])

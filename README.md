@@ -69,7 +69,9 @@ python3 main.py
 python3 -m unittest discover -v
 ```
 
-2026-08-12 기준 자동 테스트 18개가 모두 통과합니다.
+2026-08-12 기준 자동 테스트 23개가 모두 통과합니다. 메뉴 출력,
+입력·정답 경계값, 최고 점수의 즉시 저장 성공·실패도 회귀 테스트로
+검증합니다.
 
 ## 3. 기능 목록
 
@@ -97,7 +99,10 @@ python3 -m unittest discover -v
 ├── state.json                 # 퀴즈와 최고 점수 영속 데이터
 ├── docs/
 │   ├── git-evidence.txt       # 원격 URL, 커밋 수, 브랜치 그래프 증빙
+│   ├── state-benchmark.md     # JSON 크기별 저장·로드 측정 결과
 │   └── screenshots/           # 실행 및 Git 증빙 이미지
+├── scripts/
+│   └── benchmark_state.py    # 상태 벤치마크 재현 스크립트
 ├── tests/
 │   ├── test_quiz.py           # Quiz 모델 테스트
 │   ├── test_menu.py           # 메뉴와 공통 입력 테스트
@@ -154,6 +159,13 @@ python3 -m unittest discover -v
 메서드가 공유하는 퀴즈 목록·점수·파일 경로처럼 수명주기가 있는 상태는
 클래스가 적합하다는 기준으로 나눴습니다.
 
+| 비교 기준 | 함수 중심 | 클래스 중심 | 이 프로젝트의 선택 |
+| --- | --- | --- | --- |
+| 상태 | 인자·반환값으로 명시적 전달 | 인스턴스가 공유 상태 보관 | 퀴즈 목록·점수·경로는 `QuizGame` |
+| 간결성 | 작은 무상태 계산에 유리 | 초기화와 생명주기 관리 필요 | 기본 데이터 생성은 함수 |
+| 테스트 | 순수 함수는 독립 검증이 쉬움 | 입출력·섞기 함수 교체 가능 | 생성자 주입으로 게임 흐름 검증 |
+| 확장 | 상태 인자가 늘어날 수 있음 | 책임 경계가 흐려지면 비대해질 수 있음 | `Quiz`와 `QuizGame`으로 경계 분리 |
+
 ### 5.4 책임 경계 사례
 
 | 상황 | 담당 클래스 | 이유 |
@@ -182,6 +194,17 @@ python3 -m unittest discover -v
 | JSON 변환 | `quiz.py: to_dict()`, `from_dict()` |
 | 상태 로드·백업·저장 | `quiz_game.py: load_state()`, `_backup_invalid_state()`, `save_state()` |
 
+주요 책임과 회귀 테스트의 연결은 다음과 같습니다.
+
+| 책임 | 대표 테스트 |
+| --- | --- |
+| 메뉴 출력·종료 | [`test_menu_output_matches_the_five_documented_options`](tests/test_menu.py) |
+| 정수 범위 검증 | [`test_integer_input_accepts_minimum_and_maximum_boundaries`](tests/test_menu.py) |
+| 정답 판정 | [`test_accepts_first_and_last_answer_boundaries`](tests/test_quiz.py) |
+| 최고 점수 갱신·저장 | [`test_new_best_score_is_saved_immediately`](tests/test_play.py) |
+| 저장 실패 안내 | [`test_new_best_score_reports_immediate_save_failure`](tests/test_play.py) |
+| 손상 파일 백업·복구 | [`test_corrupted_state_recovers_and_rewrites_valid_json`](tests/test_game_features.py) |
+
 ## 6. 프로그램 호출 흐름
 
 ```text
@@ -199,9 +222,44 @@ QuizGame.run
    └─ finally → save_state
 ```
 
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant G as QuizGame
+    participant Q as Quiz
+    participant F as state.json
+    G->>F: load_state()
+    F-->>G: JSON 파싱·검증 결과
+    U->>G: 메뉴 및 정답 입력
+    G->>Q: format_question(), is_correct()
+    Q-->>G: 표시 문자열·판정 결과
+    G->>G: 점수 계산·최고 기록 비교
+    alt 새 최고 점수
+        G->>F: save_state() 즉시 저장
+        F-->>G: 성공 또는 실패
+        G-->>U: 저장 결과 안내
+    end
+    U->>G: 종료 / Ctrl+C / EOF
+    G->>F: finally에서 최종 save_state()
+```
+
 현재 프로그램은 네트워크 연결, 데이터베이스 연결, 별도 로그 파일 같은 외부
 자원을 열지 않으므로 종료 시 핵심 정리 항목은 상태 저장입니다. 나중에 이런
 자원을 추가하면 같은 `finally` 구간에서 연결과 파일을 닫아야 합니다.
+예를 들어 네트워크 클라이언트가 추가되면 다음과 같이 상태 저장과 자원
+해제를 하나의 종료 경로에 둡니다. 아래는 미래 확장용 예시이며 현재 코드에
+네트워크 연결이 있다는 뜻은 아닙니다.
+
+```python
+client = None
+try:
+    client = create_client()
+    run_game(client)
+finally:
+    if client is not None:
+        client.close()
+    game.save_state()
+```
 
 현재 미션의 대화형 실행에서는 사용자가 발생시키는 `Ctrl+C`와 EOF를 처리합니다.
 서버나 컨테이너에서 장시간 실행하는 프로그램으로 바뀐다면 `SIGTERM` 같은 외부
@@ -281,6 +339,13 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 지원하는 버전보다 새 버전이면 원본을 변경하지 않은 채 안내 후 중단하는 것이
 안전합니다.
 
+예를 들어 v2에 선택 필드인 `category`를 추가할 때는 v1을 로드한
+후 각 문제에 `"category": "미분류"`를 채워 넣고 `schema_version` 값을 2로
+올립니다. 마이그레이션 전에 원본을 백업하고, 변환 후 `Quiz.from_dict()`
+검증과 저장·재로드 테스트를 통과한 데이터만 새 파일로 교체합니다.
+현재는 평가를 통과한 v1 형식을 유지하며, 카테고리를 즉시 추가해 기존
+상태 파일과의 호환성을 변경하지 않습니다.
+
 ### 7.4 읽기, 저장, 복구 순서
 
 읽을 때는 파일 존재 확인, JSON 파싱, 최상위 객체 확인, `quizzes` 목록 확인,
@@ -290,6 +355,19 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 저장할 때는 현재 객체를 사전으로 변환하고 같은 폴더의 임시 파일에 UTF-8로
 전부 기록한 다음 `state.json`으로 교체합니다. 저장 도중 중단되어 원본이
 일부만 기록될 위험을 줄이는 원자적 저장 방식입니다.
+
+정상 로드와 최고 점수 즉시 저장의 예시 로그는 다음과 같습니다.
+
+```text
+[시작] state.json 존재 확인 → JSON 파싱 → quizzes/best_score 검증 → 로드 완료
+[갱신] 새로운 최고 점수 → .state.json.tmp 전체 기록 → state.json 교체
+[결과] ✅ 최고 점수가 상태 파일에 저장되었습니다.
+```
+
+오류 메시지는 `[문제] + [대상] + [복구 행동]`의 순서로 안내합니다.
+예를 들어 저장 실패 시 ① `상태 파일을 저장하지 못했습니다: <원인>`,
+② `저장 대상: <경로>`, ③ `임시 파일이 남아 있다면 내용을 확인하세요:
+<경로>`를 순서대로 출력해 문제와 대응 방법을 같이 전달합니다.
 
 | 예외·오류 | 대응 |
 | --- | --- |
@@ -311,24 +389,32 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 밖의 사용자 백업 디렉터리나 암호화된 클라우드 저장소에 정기 복사해야 합니다.
 자격 증명이나 개인정보가 들어간 상태 파일은 공개 Git 저장소에 백업하지 않습니다.
 
+복구 후에는 다음 무결성 체크리스트를 확인합니다.
+
+- 안내 메시지에 원인과 `state.json.broken-날짜.bak` 경로가 보이는지
+- 백업 파일의 내용이 손상된 원본과 같고, 최대 3개만 남았는지
+- 새 `state.json`이 유효한 UTF-8 JSON이고 기본 퀴즈가 6개인지
+- 프로그램을 재실행해 복구된 파일이 다시 정상 로드되는지
+- `python3 -m unittest tests.test_game_features -v`가 통과하는지
+
 ## 8. Git과 GitHub 수행 증빙
 
 ### 8.1 원격 저장소와 커밋 수
 
-검증일: 2026-08-12, 사전평가 보완 커밋 전 스냅샷
+검증일: 2026-08-12, 100% 평가 후속 보완 커밋 전 스냅샷
 
 ```text
 $ git remote get-url origin
 https://github.com/vivleon/ia-codyssey-2.git
 
 $ git rev-list --count HEAD
-18
+20
 ```
 
-원격 `main`과 로컬 `main`은 이 스냅샷에서 동일한 커밋 `428e40d`를 가리켰고,
-이미 미션의 최소 기준인 의미 있는 커밋 10개 이상을 충족했습니다. 이후
-사전평가 보완 커밋 `65a6e34`가 원격 `main`에 게시되어 저장소에는 19개 이상의
-커밋이 존재합니다. 스냅샷 전체 원문은
+원격 `main`과 로컬 `main`은 이 스냅샷에서 동일한 커밋 `3c48857`를
+가리켰고, 의미 있는 커밋 20개로 미션의 최소 기준 10개 이상을
+충족했습니다. 이 후속 보완 커밋을 포함한 로컬 이력은 21개 이상이 됩니다.
+스냅샷 전체 원문은
 [Git 원격·커밋 증빙](docs/git-evidence.txt)에서 확인할 수 있습니다.
 
 ### 8.2 브랜치와 병합
@@ -338,10 +424,19 @@ $ git rev-list --count HEAD
 대상 브랜치에 통합하는 과정입니다. 이 프로젝트는 `--no-ff` 병합을 사용해
 어떤 커밋들이 퀴즈 플레이 기능 브랜치에서 만들어졌는지 기록을 보존했습니다.
 
+```bash
+git checkout main
+git merge --no-ff codex/quiz-play -m "Merge: 퀴즈 플레이 브랜치 통합"
+```
+
 - `codex/quiz-play` 브랜치에서 출제·채점 기능과 테스트 구현
 - `main`에 `--no-ff` 방식으로 병합해 브랜치 작업 기록 보존
 - 개발 완료 후 별도 디렉터리에서 clone → 수정 → commit → push 수행
 - 기존 작업 디렉터리에서 pull하여 원격 변경 반영
+
+팀 작업의 브랜치 이름은 `<type>/<short-topic>` 형식을 권장합니다. type은
+`feature`, `fix`, `docs`, `test`, `chore`를 사용하고, topic은 소문자
+영문·숫자·하이픈으로 간결하게 적습니다. 예: `test/score-save-log`.
 
 병합 충돌이 발생하면 `git status`로 충돌 파일을 확인하고, 파일 안의 충돌
 표시를 비교해 의도한 내용을 남깁니다. 테스트 후 `git add`와 `git commit`으로
@@ -371,6 +466,21 @@ Type(Scope): 50자 안팎의 변경 요약
 | `Refactor` | 동작을 유지한 구조 개선 | `Refactor: QuizGame 저장 책임 분리` |
 | `Data` | 기본 데이터 변경 | `Data: AI 기초 퀴즈 추가` |
 | `Chore` | 설정과 프로젝트 정리 | `Chore: Python 프로젝트 구조 설정` |
+
+최근 커밋 표본을 규칙과 비교한 결과입니다. scope는 선택이므로
+`Type: 요약`과 `Type(Scope): 요약`은 둘 다 규칙을 준수합니다.
+
+| 커밋 | 메시지 | 형식 | 결과 |
+| --- | --- | --- | --- |
+| `3c48857` | `Docs(evidence): 게시 상태 현재형으로 정리` | `Type(Scope): 요약` | 준수 |
+| `65a6e34` | `Fix(evaluation): 사전평가 보완 및 상태 복구 강화` | `Type(Scope): 요약` | 준수 |
+| `428e40d` | `Docs: 제출용 실행 증빙 스크린샷 추가` | `Type: 요약` | 준수 |
+| `272f5fe` | `Docs: clone과 pull 실습 완료 기록` | `Type: 요약` | 준수 |
+| `5ed0d54` | `Docs: 실행 방법과 구조 및 데이터 설명 작성` | `Type: 요약` | 준수 |
+
+점검 결과 표본 5개 중 5개가 준수했습니다. 새 커밋은 작성 전
+`git diff --cached`로 하나의 목적인지 확인하고 커밋 후
+`git log -1 --pretty=%s`로 형식을 점검합니다.
 
 ### 8.4 주요 Git 명령
 
@@ -411,6 +521,13 @@ Type(Scope): 50자 안팎의 변경 요약
 적용하고, 부분 수정·동시성·지속적인 증가가 필요하면 JSON 파일 대신 SQLite
 같은 데이터베이스를 사용합니다.
 
+재현 가능한 측정 결과와 100ms·10MiB 전환 검토 기준은
+[JSON 상태 벤치마크](docs/state-benchmark.md)에 있습니다. 2026-08-12
+Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
+1,000개는
+약 215.9KiB, 저장 5.06ms(p95 9.82ms), 로드 8.48ms(p95 8.79ms),
+로드 피크 1.09MiB였습니다.
+
 ## 10. 요구 변경 시 수정 위치
 
 | 요구 변경 | 주요 수정 파일·함수 | 함께 확인할 테스트 |
@@ -423,11 +540,19 @@ Type(Scope): 50자 안팎의 변경 요약
 | 백업 정책 추가 | `_backup_invalid_state()`, `save_state()` | `tests/test_game_features.py`의 백업·저장 테스트 |
 | 검색 기능 추가 | `QuizGame`의 검색 메서드와 인덱스 | 신규 검색 테스트 |
 
-## 11. 두 차례 사전평가 핵심 보완 확인표
+변경 전에 `python3 -m unittest discover -v`로 기준선을 확보하고, 표의
+관련 테스트를 우선 실행한 뒤 전체 테스트를 다시 실행합니다. 파이썬
+표준 라이브러리 `unittest` 기반이므로 별도 도구 없이 자동 발견되며,
+수정 파일과 함수 이름을 위 표와 대조하면 영향 범위를 빠르게 선별할 수
+있습니다.
+
+## 11. 사전평가 및 100% 통과 후속 확인표
+
+### 11.1 기존 사전평가 핵심 보완
 
 | 평가 항목 | 보완 내용 | README·증빙 위치 |
 | --- | --- | --- |
-| #5 원격·10개 이상 커밋 | 보완 전 18개와 게시 후 19개 이상, 전체 로그와 이미지 제공 | 8.1, `docs/git-evidence.txt`, 12번 이미지 |
+| #5 원격·10개 이상 커밋 | 후속 보완 전 로컬·원격 20개, 보완 커밋 포함 로컬 21개 이상 | 8.1, `docs/git-evidence.txt`, 12번 이미지 |
 | #12 커밋 메시지 규칙 | `Type(Scope): 요약` 템플릿, Type 표와 예시 제공 | 8.3 |
 | #14 JSON 선택 근거 | 가독성·경량성 장점과 부분 조회·동시 쓰기 단점 비교 | 7.2 |
 | #16 브랜치·병합 개념 | 브랜치 사용 이유, 병합 의미, `--no-ff` 정책 설명 | 8.2 |
@@ -436,13 +561,38 @@ Type(Scope): 50자 안팎의 변경 요약
 위 표는 문서 위치를 찾기 위한 색인입니다. 실제 증빙은 해당 절과 실행 코드,
 테스트, Git 로그에 있습니다.
 
+### 11.2 100% 평가 후속 권고 반영
+
+| 항목 | 후속 보강 | 검증 위치 |
+| --- | --- | --- |
+| #1 | 메뉴 5개 실제 출력 계약 테스트 | `tests/test_menu.py` |
+| #2 | 메뉴 1·5와 정답 1·4 경계값 테스트 | `tests/test_menu.py`, `tests/test_quiz.py` |
+| #3 | 최고 점수 즉시 저장의 성공·실패 로그 테스트 | `quiz_game.py`, `tests/test_play.py` |
+| #4 | 평가를 통과한 v1 호환성은 유지하고 category는 v2 마이그레이션 절차로 설계 | 7.3 |
+| #5 | 후속 커밋 전 로컬·원격 20개 스냅샷과 갱신 명령 | 8.1, `docs/git-evidence.txt` |
+| #6 | `git merge --no-ff` 재현 명령 | 8.2 |
+| #7 | 증빙별 캡션·텍스트 결과와 Git 그래프 인라인 이미지 | 8.1, 12 |
+| #8 | 클래스 책임과 대표 테스트 파일·함수의 직접 링크 | 5.5 |
+| #9 | 사용자·`QuizGame`·`Quiz`·`state.json` 시퀀스 다이어그램 | 6 |
+| #10 | 로드 검증과 임시 파일 교체 예시 로그 | 7.4 |
+| #11 | 미래 네트워크 자원을 `finally`에서 해제하는 예시 | 6 |
+| #12 | 최근 커밋 5개의 메시지 규칙 준수 점검표 | 8.3 |
+| #13 | 함수·클래스의 상태, 간결성, 테스트, 확장 트레이드오프 표 | 5.3 |
+| #14 | 10·100·1,000·5,000개 JSON 크기·시간·메모리 측정 | 9, `docs/state-benchmark.md` |
+| #15 | `문제 + 대상 + 복구 행동` 오류 문구 템플릿 | 7.4 |
+| #16 | `<type>/<short-topic>` 브랜치 네이밍 규칙 | 8.2 |
+| #17 | v1에서 category 기본값을 채우는 v2 마이그레이션 예시 | 7.3 |
+| #18 | 측정 수치와 100ms·10MiB 전환 검토 기준 | 9, `docs/state-benchmark.md` |
+| #19 | 백업, 재작성 JSON, 재로드, 자동 테스트 복구 체크리스트 | 7.4 |
+| #20 | 변경 파일·함수·관련 테스트의 영향 범위 매핑 | 5.5, 10 |
+
 ## 12. 제출용 실행 증빙
 
 아래 이미지는 저장소에서 직접 열 수 있습니다.
 
 | 증빙 | 링크 | 캡션과 확인 내용 |
 | --- | --- | --- |
-| Python 개발 환경과 테스트 | [01-development-environment.png](docs/screenshots/01-development-environment.png) | 초기 Python 버전과 당시 `unittest discover` 통과 결과. 현재는 18개 테스트 통과 |
+| Python 개발 환경과 테스트 | [01-development-environment.png](docs/screenshots/01-development-environment.png) | 초기 Python 버전과 당시 `unittest discover` 통과 결과. 현재는 23개 테스트 통과 |
 | 퀴즈 추가 및 저장 | [02-add-quiz.png](docs/screenshots/02-add-quiz.png) | 메뉴 2에서 문제·선택지·정답을 입력하고 저장한 결과 |
 | 퀴즈 목록 | [03-quiz-list.png](docs/screenshots/03-quiz-list.png) | 메뉴 3에서 저장된 퀴즈를 다시 읽어 출력한 결과 |
 | 퀴즈 플레이와 최고 점수 | [04-play-and-score.png](docs/screenshots/04-play-and-score.png) | 메뉴 1 채점 결과와 메뉴 4 최고 점수 유지 확인 |

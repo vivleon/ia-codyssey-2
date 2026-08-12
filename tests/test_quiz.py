@@ -17,6 +17,14 @@ class QuizTest(unittest.TestCase):
         self.assertTrue(self.quiz.is_correct(3))
         self.assertFalse(self.quiz.is_correct(1))
 
+    def test_accepts_first_and_last_answer_boundaries(self) -> None:
+        choices = ["하나", "둘", "셋", "넷"]
+        first_answer = Quiz("첫 번째가 정답인 문제", choices, 1)
+        last_answer = Quiz("마지막이 정답인 문제", choices, 4)
+
+        self.assertTrue(first_answer.is_correct(1))
+        self.assertTrue(last_answer.is_correct(4))
+
     def test_round_trip_dictionary(self) -> None:
         restored = Quiz.from_dict(self.quiz.to_dict())
         self.assertEqual(restored, self.quiz)

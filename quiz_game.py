@@ -232,7 +232,12 @@ class QuizGame:
         if self._is_new_best(candidate):
             self.best_score = candidate
             self.output("🎉 새로운 최고 점수입니다!")
-            self.save_state()
+            if self.save_state():
+                self.output("✅ 최고 점수가 상태 파일에 저장되었습니다.")
+            else:
+                self.output(
+                    "⚠️ 최고 점수는 갱신되었지만 파일 저장에 실패했습니다."
+                )
         self.output("=" * 40)
 
     def _is_new_best(self, candidate: dict) -> bool:

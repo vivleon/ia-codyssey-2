@@ -1,6 +1,6 @@
 IA Codyssey Quiz Game - Git Evidence
 Verified: 2026-08-12
-Snapshot: before the pre-evaluation improvement commit
+Snapshot: before the 100-percent evaluation follow-up commit
 
 $ git remote get-url origin
 https://github.com/vivleon/ia-codyssey-2.git
@@ -9,14 +9,22 @@ $ git branch --show-current
 main
 
 $ git rev-list --count HEAD
-18
+20
+
+$ git rev-parse HEAD
+3c488579213827d740caf431f838de0156678f5f
+
+$ git rev-parse origin/main
+3c488579213827d740caf431f838de0156678f5f
 
 $ git ls-remote --heads origin
 2428fde31a8ae2803dd2a7613e45767a81863636 refs/heads/codex/quiz-play
-428e40d7123936621c2851b98e0489d8f977b147 refs/heads/main
+3c488579213827d740caf431f838de0156678f5f refs/heads/main
 
 $ git log --oneline --graph --decorate --all
-* 428e40d (HEAD -> main, origin/main, origin/HEAD) Docs: 제출용 실행 증빙 스크린샷 추가
+* 3c48857 (HEAD -> main, origin/main, origin/HEAD) Docs(evidence): 게시 상태 현재형으로 정리
+* 65a6e34 Fix(evaluation): 사전평가 보완 및 상태 복구 강화
+* 428e40d Docs: 제출용 실행 증빙 스크린샷 추가
 * 272f5fe Docs: clone과 pull 실습 완료 기록
 * 5ed0d54 Docs: 실행 방법과 구조 및 데이터 설명 작성
 * f2c8f2d Data: 기본 퀴즈 상태 파일 추가
@@ -39,7 +47,7 @@ $ git log --oneline --graph --decorate --all
 
 Result:
 - Remote repository is configured and reachable.
-- The main branch contains 18 meaningful commits, exceeding the required 10.
+- Before the follow-up work, local and remote main contained 20 meaningful commits.
+- The follow-up commit increases the local count to at least 21, exceeding the required 10.
 - The codex/quiz-play branch and the non-fast-forward merge are visible in history.
-- Improvement commit 65a6e34 was published to main after this snapshot.
-- The published repository therefore contains 19 or more commits.
+- Run the commands above again after publishing to refresh the remote snapshot.

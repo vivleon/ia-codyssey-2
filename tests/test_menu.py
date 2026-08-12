@@ -42,6 +42,39 @@ class MenuTest(unittest.TestCase):
         self.assertFalse(game.running)
         self.assertTrue(any("게임을 종료합니다" in message for message in messages))
 
+    def test_menu_output_matches_the_five_documented_options(self) -> None:
+        messages = []
+        game = QuizGame(
+            input_func=lambda _: "5",
+            output_func=messages.append,
+            state_file=self.state_file,
+        )
+
+        game.run()
+
+        self.assertEqual(messages[0], QuizGame.MENU)
+        self.assertEqual(
+            [line.strip() for line in messages[0].splitlines() if ". " in line],
+            [
+                "1. 퀴즈 풀기",
+                "2. 퀴즈 추가",
+                "3. 퀴즈 목록",
+                "4. 점수 확인",
+                "5. 종료",
+            ],
+        )
+
+    def test_integer_input_accepts_minimum_and_maximum_boundaries(self) -> None:
+        answers = iter(["1", "5"])
+        game = QuizGame(
+            input_func=lambda _: next(answers),
+            output_func=lambda _: None,
+            state_file=self.state_file,
+        )
+
+        self.assertEqual(game._read_int("선택: ", 1, 5), 1)
+        self.assertEqual(game._read_int("선택: ", 1, 5), 5)
+
     def test_eof_exits_safely(self) -> None:
         def raise_eof(_: str) -> str:
             raise EOFError
