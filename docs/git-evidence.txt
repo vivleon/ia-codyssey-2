@@ -41,4 +41,5 @@ Result:
 - Remote repository is configured and reachable.
 - The main branch contains 18 meaningful commits, exceeding the required 10.
 - The codex/quiz-play branch and the non-fast-forward merge are visible in history.
-- Committing the pre-evaluation improvements will increase the count to 19 or more.
+- Improvement commit 65a6e34 was published to main after this snapshot.
+- The published repository therefore contains 19 or more commits.
