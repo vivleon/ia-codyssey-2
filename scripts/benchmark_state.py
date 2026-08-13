@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""QuizGame JSON 상태 저장·로드 비용을 재현 가능하게 측정한다."""
+"""QuizGame JSON 상태 저장·로드 시간과 메모리를 측정하는 보조 도구.
+
+실제 게임 기능에는 사용되지 않는다. README의 '퀴즈가 많아질 때 JSON 방식에
+어떤 한계가 생기는가?'라는 설명을 추측이 아닌 측정값으로 확인하기 위한 코드다.
+"""
 
 import argparse
 import gc
@@ -13,6 +17,8 @@ import tracemalloc
 from pathlib import Path
 from typing import Dict, List
 
+# 이 스크립트는 scripts 폴더 안에 있으므로 부모의 부모가 프로젝트 루트다.
+# 루트를 import 검색 경로에 넣어 어디에서 실행해도 quiz 모듈을 찾게 한다.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -22,14 +28,22 @@ from quiz_game import QuizGame  # noqa: E402
 
 
 def percentile(values: List[float], ratio: float) -> float:
-    """작은 표본에서도 재현 가능한 nearest-rank 백분위수를 구한다."""
+    """정렬된 값에서 nearest-rank 방식의 백분위수를 구한다.
+
+    p95는 측정값의 약 95%가 이 값 이하라는 의미다. 평균만 볼 때 가려질 수 있는
+    느린 실행을 함께 보여 준다.
+    """
     ordered = sorted(values)
     index = max(0, math.ceil(len(ordered) * ratio) - 1)
     return ordered[index]
 
 
 def build_quizzes(count: int) -> List[Quiz]:
-    """측정용으로 동일한 크기의 유효한 퀴즈를 생성한다."""
+    """요청한 개수만큼 서로 구분되는 유효한 측정용 Quiz를 만든다.
+
+    리스트 컴프리헨션은 반복문으로 append하는 과정을 간결하게 표현한 문법이다.
+    ``index % 4 + 1``은 정답 번호가 1~4 사이에서 반복되게 한다.
+    """
     return [
         Quiz(
             f"벤치마크 문제 {index:05d}",
@@ -46,13 +60,20 @@ def build_quizzes(count: int) -> List[Quiz]:
 
 
 def measure(count: int, repeats: int) -> Dict[str, float]:
-    """저장·로드 중앙값·p95와 로드 피크 메모리를 측정한다."""
+    """한 데이터 크기의 저장·로드 시간과 로드 피크 메모리를 측정한다.
+
+    임시 폴더는 측정이 끝나면 자동 삭제되어 실제 state.json을 건드리지 않는다.
+    ``perf_counter``는 짧은 실행 시간을 측정하는 고해상도 시계이고,
+    ``tracemalloc``은 Python이 로드 중 사용한 메모리의 최고점을 기록한다.
+    여러 번 측정한 뒤 중앙값과 p95를 사용해 일시적인 흔들림의 영향을 줄인다.
+    """
     with tempfile.TemporaryDirectory() as temporary_directory:
         state_file = Path(temporary_directory) / "state.json"
         game = QuizGame(output_func=lambda _: None, state_file=state_file)
         game.quizzes = build_quizzes(count)
         game.best_score = None
 
+        # 밀리초(ms)로 바꾸기 위해 초 단위 차이에 1,000을 곱한다.
         save_times = []
         for _ in range(repeats):
             started = time.perf_counter()
@@ -63,6 +84,7 @@ def measure(count: int, repeats: int) -> Dict[str, float]:
         load_times = []
         peak_memory = []
         for _ in range(repeats):
+            # 이전 반복에서 남은 객체를 정리해 메모리 측정 조건을 비슷하게 맞춘다.
             gc.collect()
             tracemalloc.start()
             started = time.perf_counter()
@@ -72,6 +94,7 @@ def measure(count: int, repeats: int) -> Dict[str, float]:
             tracemalloc.stop()
             if len(restored.quizzes) != count:
                 raise RuntimeError("로드한 퀴즈 개수가 원본과 다릅니다.")
+            # byte를 MiB 단위로 바꾼다: 1 MiB = 1024 * 1024 byte.
             peak_memory.append(peak / 1024 / 1024)
 
         return {
@@ -86,6 +109,8 @@ def measure(count: int, repeats: int) -> Dict[str, float]:
 
 
 def main() -> None:
+    """명령행 옵션을 읽고 각 크기의 측정 결과를 Markdown 표로 출력한다."""
+    # argparse는 --sizes, --repeats 같은 명령행 옵션과 도움말을 처리한다.
     parser = argparse.ArgumentParser(
         description="QuizGame JSON 저장·로드 벤치마크"
     )
@@ -115,6 +140,7 @@ def main() -> None:
         "로드 중앙 (ms) | 로드 p95 (ms) | 로드 피크 (MiB) |"
     )
     print("| ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    # 출력 형식을 Markdown 표로 맞춰 README에 결과를 쉽게 옮길 수 있다.
     for size in arguments.sizes:
         result = measure(size, arguments.repeats)
         print(

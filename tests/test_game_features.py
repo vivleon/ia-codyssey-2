@@ -1,4 +1,4 @@
-"""영속성, 퀴즈 추가, 조회 기능 통합 테스트."""
+"""JSON 영속성, 복구, 퀴즈 추가·삭제 기능을 연결해 확인하는 테스트."""
 
 import json
 import unittest
@@ -10,12 +10,16 @@ from quiz_game import QuizGame
 
 
 class GameFeaturesTest(unittest.TestCase):
+    """파일을 사용하는 기능이 재실행 뒤에도 같은 상태를 유지하는지 확인한다."""
+
     def setUp(self) -> None:
+        """각 테스트에 독립된 임시 폴더와 state.json 경로를 준비한다."""
         self.temporary_directory = TemporaryDirectory()
         self.addCleanup(self.temporary_directory.cleanup)
         self.state_file = Path(self.temporary_directory.name) / "state.json"
 
     def make_game(self, answers=None):
+        """가짜 입력·출력과 고정 출제 순서를 사용하는 테스트 게임을 만든다."""
         messages = []
         answer_iterator = iter(answers or [])
         game = QuizGame(
@@ -27,6 +31,7 @@ class GameFeaturesTest(unittest.TestCase):
         return game, messages
 
     def test_missing_state_uses_eighteen_defaults_with_hints(self) -> None:
+        """첫 실행에는 힌트가 있는 기본 문제 18개와 빈 점수를 사용한다."""
         game, _ = self.make_game()
         self.assertEqual(len(game.quizzes), 18)
         self.assertTrue(all(quiz.hint for quiz in game.quizzes))
@@ -34,6 +39,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertEqual(game.score_history, [])
 
     def test_save_and_reload_preserves_quizzes_and_score(self) -> None:
+        """저장 후 새 객체를 만들어도 문제·최고점수·히스토리가 유지된다."""
         game, _ = self.make_game()
         game.best_score = {"correct": 4, "total": 6, "percentage": 67}
         game.score_history = [
@@ -54,6 +60,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertEqual(restored.score_history, game.score_history)
 
     def test_save_failure_reports_target_and_temporary_paths(self) -> None:
+        """저장 실패 안내에 원본과 임시 파일 경로가 모두 포함되는지 확인한다."""
         blocked_parent = Path(self.temporary_directory.name) / "not-a-directory"
         blocked_parent.write_text("file", encoding="utf-8")
         messages = []
@@ -73,6 +80,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertTrue(any("임시 파일" in message for message in messages))
 
     def test_corrupted_state_recovers_and_rewrites_valid_json(self) -> None:
+        """깨진 JSON을 백업하고 기본 데이터로 유효한 파일을 다시 만드는지 확인한다."""
         self.state_file.write_text("{broken", encoding="utf-8")
 
         game, messages = self.make_game()
@@ -90,6 +98,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertIn("quizzes", repaired)
 
     def test_corrupted_state_keeps_only_three_recent_backups(self) -> None:
+        """손상 복구를 반복해도 최근 백업 세 개만 보관하는지 확인한다."""
         for index in range(5):
             self.state_file.write_text(f"{{broken-{index}", encoding="utf-8")
             self.make_game()
@@ -107,6 +116,7 @@ class GameFeaturesTest(unittest.TestCase):
         )
 
     def test_add_quiz_retries_invalid_values_and_persists(self) -> None:
+        """빈 값·중복 선택지·범위 오류를 재입력받고 정상 문제만 저장한다."""
         answers = [
             "",
             "AI의 답을 검증해야 하는 이유는?",
@@ -132,6 +142,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertTrue(any("1부터 4 사이" in message for message in messages))
 
     def test_empty_list_and_no_score_have_guidance(self) -> None:
+        """목록과 점수가 비어 있을 때 이해하기 쉬운 안내를 보여 준다."""
         game, messages = self.make_game()
         game.quizzes = []
 
@@ -144,6 +155,7 @@ class GameFeaturesTest(unittest.TestCase):
         )
 
     def test_delete_quiz_persists_after_reload(self) -> None:
+        """문제 삭제 결과가 파일에 반영되어 재실행 후에도 사라져 있는지 확인한다."""
         game, messages = self.make_game(["1"])
         original_count = len(game.quizzes)
         deleted_question = game.quizzes[0].question
@@ -156,6 +168,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertTrue(any("삭제하고 저장했습니다" in message for message in messages))
 
     def test_delete_quiz_rolls_back_when_save_fails(self) -> None:
+        """삭제 파일 저장에 실패하면 메모리의 문제 목록도 원상 복구한다."""
         game, messages = self.make_game(["1"])
         original_quizzes = list(game.quizzes)
 
@@ -166,6 +179,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertTrue(any("삭제를 취소했습니다" in message for message in messages))
 
     def test_old_state_without_new_fields_remains_compatible(self) -> None:
+        """힌트·히스토리가 없던 이전 저장 형식도 읽을 수 있는지 확인한다."""
         self.state_file.write_text(
             json.dumps(
                 {
@@ -189,6 +203,7 @@ class GameFeaturesTest(unittest.TestCase):
         self.assertEqual(game.score_history, [])
 
     def test_invalid_score_history_is_backed_up_and_recovered(self) -> None:
+        """시간대가 빠진 잘못된 기록을 손상 데이터로 판단해 복구한다."""
         self.state_file.write_text(
             json.dumps(
                 {

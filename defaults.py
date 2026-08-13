@@ -1,4 +1,8 @@
-"""첫 실행과 복구에 사용하는 기본 퀴즈 데이터."""
+"""첫 실행과 손상 복구에 사용하는 기본 퀴즈 데이터.
+
+데이터만 모아 두면 게임 진행 코드를 읽을 때 긴 문제 목록이 흐름을 가리지 않고,
+기본 문제를 수정할 때도 이 파일만 확인하면 된다.
+"""
 
 from typing import List
 
@@ -6,8 +10,14 @@ from quiz import Quiz
 
 
 def build_default_quizzes() -> List[Quiz]:
-    """AI와 Python 기초 주제의 기본 퀴즈를 반환한다."""
+    """AI·Python·파일·Git 기초를 다루는 Quiz 객체 18개를 반환한다.
+
+    함수로 새 리스트를 만들기 때문에 호출할 때마다 독립된 목록이 생긴다.
+    한 게임에서 퀴즈를 추가하거나 삭제해도 다음 기본 상태까지 바뀌지 않는다.
+    각 ``Quiz(...)``의 인자는 질문, 선택지 네 개, 정답 번호, 힌트 순서다.
+    """
     return [
+        # 1~3: AI 기본 개념
         Quiz(
             "인공지능(AI)을 가장 잘 설명한 것은?",
             [
@@ -36,6 +46,7 @@ def build_default_quizzes() -> List[Quiz]:
             3,
             "생성형은 기존 것을 분류하는 데서 한 단계 더 나아갑니다.",
         ),
+        # 4~6: Python 조건문과 올바른 AI 활용
         Quiz(
             "Python에서 여러 값을 순서대로 담는 자료형은?",
             ["bool", "list", "int", "str"],
@@ -64,6 +75,7 @@ def build_default_quizzes() -> List[Quiz]:
             2,
             "AI도 틀릴 수 있으므로 근거를 확인해야 합니다.",
         ),
+        # 7~9: int, bool, dict 자료형
         Quiz(
             "Python에서 정수 값을 저장하는 자료형은?",
             ["str", "int", "list", "dict"],
@@ -82,6 +94,7 @@ def build_default_quizzes() -> List[Quiz]:
             3,
             "중괄호 안에 이름과 값을 콜론으로 연결합니다.",
         ),
+        # 10~12: 반복문과 함수
         Quiz(
             "반복 횟수나 순회할 목록이 정해져 있을 때 적합한 반복문은?",
             ["if", "for", "try", "class"],
@@ -100,6 +113,7 @@ def build_default_quizzes() -> List[Quiz]:
             2,
             "함수 실행 결과를 바깥에서 다시 사용하게 해 줍니다.",
         ),
+        # 13~14: 클래스, 객체, self
         Quiz(
             "클래스로 객체를 만들 때 초기 속성을 설정하는 메서드는?",
             ["__init__", "__str__", "append", "open"],
@@ -112,6 +126,7 @@ def build_default_quizzes() -> List[Quiz]:
             2,
             "Python 인스턴스 메서드의 첫 번째 매개변수 관례입니다.",
         ),
+        # 15~17: 파일 입출력, JSON, 예외 처리
         Quiz(
             "파일을 자동으로 닫아 주는 Python 파일 열기 방식은?",
             ["with open(...) as f", "print(file)", "import file", "return open"],
@@ -130,6 +145,7 @@ def build_default_quizzes() -> List[Quiz]:
             2,
             "예외가 발생할 수 있는 코드와 대응 코드를 나누는 문법입니다.",
         ),
+        # 18: Git 버전 관리
         Quiz(
             "Git에서 선택한 변경을 하나의 이력으로 기록하는 명령은?",
             ["git clone", "git pull", "git commit", "git checkout"],
