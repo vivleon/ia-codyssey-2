@@ -4,6 +4,7 @@ import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from quiz_game import QuizGame
 
@@ -25,20 +26,32 @@ class GameFeaturesTest(unittest.TestCase):
         )
         return game, messages
 
-    def test_missing_state_uses_at_least_five_defaults(self) -> None:
+    def test_missing_state_uses_eighteen_defaults_with_hints(self) -> None:
         game, _ = self.make_game()
-        self.assertGreaterEqual(len(game.quizzes), 5)
+        self.assertEqual(len(game.quizzes), 18)
+        self.assertTrue(all(quiz.hint for quiz in game.quizzes))
         self.assertIsNone(game.best_score)
+        self.assertEqual(game.score_history, [])
 
     def test_save_and_reload_preserves_quizzes_and_score(self) -> None:
         game, _ = self.make_game()
         game.best_score = {"correct": 4, "total": 6, "percentage": 67}
+        game.score_history = [
+            {
+                "played_at": "2026-08-13T10:00:00+09:00",
+                "correct": 4,
+                "total": 6,
+                "hints_used": 1,
+                "percentage": 57,
+            }
+        ]
         self.assertTrue(game.save_state())
 
         restored, _ = self.make_game()
 
         self.assertEqual(len(restored.quizzes), len(game.quizzes))
         self.assertEqual(restored.best_score, game.best_score)
+        self.assertEqual(restored.score_history, game.score_history)
 
     def test_save_failure_reports_target_and_temporary_paths(self) -> None:
         blocked_parent = Path(self.temporary_directory.name) / "not-a-directory"
@@ -104,6 +117,7 @@ class GameFeaturesTest(unittest.TestCase):
             "키보드가 바뀌어서",
             "0",
             "1",
+            "AI도 틀릴 수 있습니다.",
         ]
         game, messages = self.make_game(answers)
         original_count = len(game.quizzes)
@@ -113,6 +127,7 @@ class GameFeaturesTest(unittest.TestCase):
 
         self.assertEqual(len(restored.quizzes), original_count + 1)
         self.assertEqual(restored.quizzes[-1].answer, 1)
+        self.assertEqual(restored.quizzes[-1].hint, "AI도 틀릴 수 있습니다.")
         self.assertTrue(any("이미 입력한 선택지" in message for message in messages))
         self.assertTrue(any("1부터 4 사이" in message for message in messages))
 
@@ -124,7 +139,81 @@ class GameFeaturesTest(unittest.TestCase):
         game.show_best_score()
 
         self.assertTrue(any("등록된 퀴즈가 없습니다" in message for message in messages))
-        self.assertTrue(any("아직 퀴즈를 풀지 않았습니다" in message for message in messages))
+        self.assertTrue(
+            any("아직 퀴즈를 풀지 않았습니다" in message for message in messages)
+        )
+
+    def test_delete_quiz_persists_after_reload(self) -> None:
+        game, messages = self.make_game(["1"])
+        original_count = len(game.quizzes)
+        deleted_question = game.quizzes[0].question
+
+        game.delete_quiz()
+        restored, _ = self.make_game()
+
+        self.assertEqual(len(restored.quizzes), original_count - 1)
+        self.assertNotIn(deleted_question, [quiz.question for quiz in restored.quizzes])
+        self.assertTrue(any("삭제하고 저장했습니다" in message for message in messages))
+
+    def test_delete_quiz_rolls_back_when_save_fails(self) -> None:
+        game, messages = self.make_game(["1"])
+        original_quizzes = list(game.quizzes)
+
+        with patch.object(game, "save_state", return_value=False):
+            game.delete_quiz()
+
+        self.assertEqual(game.quizzes, original_quizzes)
+        self.assertTrue(any("삭제를 취소했습니다" in message for message in messages))
+
+    def test_old_state_without_new_fields_remains_compatible(self) -> None:
+        self.state_file.write_text(
+            json.dumps(
+                {
+                    "quizzes": [
+                        {
+                            "question": "이전 문제",
+                            "choices": ["하나", "둘", "셋", "넷"],
+                            "answer": 1,
+                        }
+                    ],
+                    "best_score": None,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        game, _ = self.make_game()
+
+        self.assertEqual(game.quizzes[0].hint, "힌트가 없습니다.")
+        self.assertEqual(game.score_history, [])
+
+    def test_invalid_score_history_is_backed_up_and_recovered(self) -> None:
+        self.state_file.write_text(
+            json.dumps(
+                {
+                    "schema_version": 2,
+                    "quizzes": [],
+                    "best_score": None,
+                    "score_history": [
+                        {
+                            "played_at": "2026-08-13T10:00:00",
+                            "correct": 1,
+                            "total": 1,
+                            "hints_used": 0,
+                            "percentage": 100,
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        game, messages = self.make_game()
+
+        self.assertEqual(len(game.quizzes), 18)
+        self.assertEqual(game.score_history, [])
+        self.assertTrue(any("기본 데이터로 복구" in message for message in messages))
 
 
 if __name__ == "__main__":

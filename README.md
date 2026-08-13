@@ -2,11 +2,12 @@
 
 Python 기본 문법, 객체 지향, JSON 파일 입출력, Git 워크플로우를 한 번에
 연습하기 위해 만든 터미널 퀴즈 게임입니다. 프로그램을 종료한 뒤 다시
-실행해도 사용자가 추가한 퀴즈와 최고 점수가 `state.json`에 유지됩니다.
+실행해도 사용자가 추가·삭제한 퀴즈, 최고 점수와 모든 게임 기록이
+`state.json`에 유지됩니다.
 
 - GitHub 저장소: [vivleon/ia-codyssey-2](https://github.com/vivleon/ia-codyssey-2)
 - 기본 브랜치: `main`
-- 기본 퀴즈: AI와 Python 기초 6개
+- 기본 퀴즈: AI와 Python 기초 18개
 - 필수 실행 환경: Python 3.10 이상
 - 외부 라이브러리: 없음
 
@@ -18,7 +19,7 @@ Python 기본 문법, 객체 지향, JSON 파일 입출력, Git 워크플로우�
 
 주제는 **AI와 Python 기초**입니다. AI를 사용할 때 필요한 기본 개념과
 검증 태도를 익히는 동시에, 이 프로그램을 구성하는 Python 문법도 함께
-복습할 수 있어 선정했습니다. 직접 작성한 기본 퀴즈 6개가 포함되어
+복습할 수 있어 선정했습니다. 직접 작성한 기본 퀴즈 18개가 포함되어
 있습니다.
 
 ## 2. 실행 방법과 메뉴 안내
@@ -30,14 +31,15 @@ python3 --version
 python3 main.py
 ```
 
-메뉴에서 `1`부터 `5`까지 원하는 기능의 번호를 입력합니다.
+메뉴에서 `1`부터 `6`까지 원하는 기능의 번호를 입력합니다.
 
 ```text
-1. 퀴즈 풀기   - 저장된 문제를 무작위 순서로 풀고 점수를 계산합니다.
-2. 퀴즈 추가   - 문제, 서로 다른 선택지 4개, 정답 번호를 등록합니다.
-3. 퀴즈 목록   - 저장된 문제와 선택지, 정답을 확인합니다.
-4. 점수 확인   - 지금까지 저장된 최고 점수를 확인합니다.
-5. 종료        - 현재 상태를 저장한 뒤 프로그램을 종료합니다.
+1. 퀴즈 풀기   - 문제 수를 선택하고 무작위 순서로 풀며 힌트를 사용할 수 있습니다.
+2. 퀴즈 추가   - 문제, 서로 다른 선택지 4개, 정답 번호와 힌트를 등록합니다.
+3. 퀴즈 목록   - 저장된 문제와 선택지, 정답, 힌트를 확인합니다.
+4. 점수 확인   - 최고 점수와 날짜·시간이 포함된 모든 게임 기록을 확인합니다.
+5. 퀴즈 삭제   - 번호로 선택한 문제를 삭제하고 즉시 저장합니다.
+6. 종료        - 현재 상태를 저장한 뒤 프로그램을 종료합니다.
 ```
 
 숫자 메뉴에서는 앞뒤 공백을 제거한 뒤 입력을 검사합니다. 잘못 입력해도
@@ -47,9 +49,10 @@ python3 main.py
 | --- | --- | --- |
 | 빈 입력 | `값을 입력해 주세요.` | 같은 항목 재입력 |
 | 숫자가 아닌 입력 | `숫자로 입력해 주세요.` | 같은 항목 재입력 |
-| 허용 범위 밖 숫자 | `1부터 5 사이의 숫자를 입력해 주세요.` | 같은 항목 재입력 |
+| 허용 범위 밖 숫자 | 현재 입력 단계의 허용 범위를 안내 | 같은 항목 재입력 |
 | 빈 문제 또는 선택지 | `내용을 입력해 주세요.` | 같은 항목 재입력 |
 | 중복 선택지 | `이미 입력한 선택지입니다. 다른 내용을 입력해 주세요.` | 해당 선택지 재입력 |
+| 정답 입력에서 `h` | 해당 문제의 힌트 표시 | 같은 문제의 정답 입력 계속 |
 | `Ctrl+C` 또는 EOF | `입력이 중단되었습니다. 안전하게 종료합니다.` | 가능한 상태 저장 후 종료 |
 
 입력 예시는 다음과 같습니다.
@@ -61,8 +64,10 @@ python3 main.py
 | 메뉴에서 `9` | 허용 범위 밖이므로 안내 후 재입력 |
 | 아무것도 쓰지 않고 Enter | 빈 입력이므로 안내 후 재입력 |
 
-메뉴에는 `1`부터 `5`, 퀴즈 정답에는 `1`부터 `4` 사이의 숫자를 입력합니다.
-현재 입력 단계에서 별도의 취소 문자는 제공하지 않으며, 메인 메뉴의 `5`로
+메뉴에는 `1`부터 `6`, 퀴즈 정답에는 `1`부터 `4` 또는 힌트 요청 `h`를
+입력합니다. 퀴즈를 시작하면 먼저 `1`부터 현재 저장된 문제 수 사이에서
+풀 문제 수를 고릅니다. 현재 입력 단계에서 별도의 취소 문자는 제공하지
+않으며, 메인 메뉴의 `6`으로
 정상 종료하거나 `Ctrl+C`로 안전 종료할 수 있습니다. 재시도 횟수를 제한하지
 않는 이유는 초보 학습자가 입력 실수 때문에 게임에서 강제로 퇴장하지 않게
 하기 위해서입니다.
@@ -73,24 +78,37 @@ python3 main.py
 python3 -m unittest discover -v
 ```
 
-2026-08-12 기준 자동 테스트 23개가 모두 통과합니다. 메뉴 출력,
-입력·정답 경계값, 최고 점수의 즉시 저장 성공·실패도 회귀 테스트로
-검증합니다.
+2026-08-13 기준 자동 테스트 34개가 모두 통과합니다. 메뉴 출력,
+입력·정답 경계값, 무작위 출제, 문제 수 선택, 힌트 감점, 삭제 영속성,
+전체 점수 기록과 기존 JSON 호환성까지 회귀 테스트로 검증합니다.
 
 ## 3. 기능 목록
 
-- 기본 AI·Python 퀴즈 6개 제공
-- 저장된 모든 문제를 무작위 순서로 출제
+- 기본 AI·Python 퀴즈 18개 제공
+- 저장된 문제를 무작위로 섞은 뒤 사용자가 선택한 수만큼 출제
+- 문제별 힌트 제공 및 힌트 1회당 최종 점수 10점 차감
 - 정답·오답 안내와 100점 기준 결과 계산
-- 새로운 최고 점수 자동 비교 및 저장
-- 문제, 서로 다른 선택지 4개, 정답 번호를 입력해 퀴즈 추가
-- 저장된 퀴즈 목록과 정답 확인
+- 새로운 최고 점수 자동 비교 및 모든 게임 기록 저장
+- 날짜·시간, 푼 문제 수, 정답 수, 힌트 수, 최종 점수 기록
+- 문제, 서로 다른 선택지 4개, 정답 번호와 힌트를 입력해 퀴즈 추가
+- 저장된 퀴즈 목록과 정답·힌트 확인
+- 선택한 퀴즈 삭제 후 파일에 즉시 반영
 - 빈 입력, 숫자가 아닌 입력, 범위 밖 숫자 재입력 처리
 - `Ctrl+C`와 입력 스트림 종료 시 현재 상태 저장 후 안전 종료
 - 상태 파일이 없으면 기본 데이터 사용
 - JSON이 손상되었거나 스키마가 잘못되면 기본 데이터로 자동 복구
 - 손상된 상태 파일은 복구 전에 날짜가 포함된 백업으로 최대 3개 보관
 - 한글을 보존하는 UTF-8 JSON 저장
+
+### 3.1 보너스 과제 충족표
+
+| 보너스 항목 | 구현 내용 | 대표 자동 테스트 |
+| --- | --- | --- |
+| 랜덤 출제 | `random.shuffle`로 문제 복사본을 섞음 | `test_questions_are_shuffled_before_selection` |
+| 문제 수 선택 | 저장된 문제 수 범위에서 입력받아 섞인 목록을 잘라 출제 | `test_player_selects_question_count` |
+| 힌트 기능 | `Quiz.hint`, 입력 `h`, 문제당 1회, 1회당 10점 차감 | `test_hint_is_shown_once_and_deducts_ten_points` |
+| 퀴즈 삭제 | `delete_quiz()`가 번호로 삭제하고 성공 시 즉시 저장 | `test_delete_quiz_persists_after_reload` |
+| 점수 히스토리 | 모든 게임의 시각·문제 수·정답 수·힌트 수·점수를 저장 | `test_every_completed_game_is_saved_to_history` |
 
 ## 4. 파일 구조
 
@@ -99,8 +117,8 @@ python3 -m unittest discover -v
 ├── main.py                    # 프로그램 시작점
 ├── quiz.py                    # Quiz 클래스와 데이터 변환
 ├── quiz_game.py               # QuizGame 클래스와 전체 게임 흐름
-├── defaults.py                # 기본 퀴즈 6개
-├── state.json                 # 퀴즈와 최고 점수 영속 데이터
+├── defaults.py                # 힌트를 포함한 기본 퀴즈 18개
+├── state.json                 # 퀴즈, 최고 점수, 전체 게임 기록
 ├── docs/
 │   ├── git-evidence.txt       # 원격 URL, 커밋 수, 브랜치 그래프 증빙
 │   ├── state-benchmark.md     # JSON 크기별 저장·로드 측정 결과
@@ -124,8 +142,8 @@ python3 -m unittest discover -v
 
 | 속성·메서드 | 책임 |
 | --- | --- |
-| `question`, `choices`, `answer` | 문제, 선택지 4개, 정답 번호 보관 |
-| `__post_init__()` | 빈 값, 선택지 개수·중복, 정답 범위 검증 |
+| `question`, `choices`, `answer`, `hint` | 문제, 선택지 4개, 정답 번호와 힌트 보관 |
+| `__post_init__()` | 빈 값, 선택지 개수·중복, 정답 범위, 힌트 검증 |
 | `format_question()` | 터미널에 표시할 문제 문자열 생성 |
 | `is_correct()` | 사용자가 고른 번호와 정답 비교 |
 | `to_dict()` | JSON 저장이 가능한 사전으로 변환 |
@@ -141,11 +159,14 @@ python3 -m unittest discover -v
 | `run()` | 메뉴 반복, 기능 호출, 안전 종료와 최종 저장 |
 | `_read_int()` | 정수 변환과 허용 범위 검증 |
 | `_read_non_empty()` | 공백이 아닌 문자열 입력 보장 |
-| `play_quiz()` | 무작위 출제, 채점, 결과 출력, 최고 점수 갱신 |
+| `_read_answer_with_hint()` | 정답 또는 `h` 입력, 문제당 힌트 1회 처리 |
+| `play_quiz()` | 문제 수 선택, 무작위 출제, 힌트 감점, 점수·기록 저장 |
 | `add_quiz()` | 새 퀴즈 입력·검증·저장 |
 | `list_quizzes()` | 저장된 퀴즈 목록 출력 |
-| `show_best_score()` | 최고 점수 또는 미응시 안내 출력 |
+| `delete_quiz()` | 번호로 퀴즈 삭제 후 즉시 저장 |
+| `show_best_score()` | 최고 점수와 모든 게임 기록 출력 |
 | `load_state()` | 파일 읽기, 스키마 검증, 객체 복원, 손상 복구 |
+| `_validate_score_history()` | 게임 기록의 시간·타입·범위 검증 |
 | `_backup_invalid_state()` | 손상 파일의 버전 백업 생성과 보관 개수 제한 |
 | `save_state()` | 임시 파일을 이용한 UTF-8 JSON 원자적 저장 |
 
@@ -193,7 +214,7 @@ python3 -m unittest discover -v
 | 메뉴 선택과 종료 | `quiz_game.py: QuizGame.run()` |
 | 정수·문자열 입력 검증 | `quiz_game.py: _read_int()`, `_read_non_empty()` |
 | 출제·채점·최고 점수 | `quiz_game.py: play_quiz()`, `_is_new_best()` |
-| 퀴즈 등록·조회 | `quiz_game.py: add_quiz()`, `list_quizzes()` |
+| 퀴즈 등록·조회·삭제 | `quiz_game.py: add_quiz()`, `list_quizzes()`, `delete_quiz()` |
 | 개별 문제 검증·판정 | `quiz.py: Quiz.__post_init__()`, `is_correct()` |
 | JSON 변환 | `quiz.py: to_dict()`, `from_dict()` |
 | 상태 로드·백업·저장 | `quiz_game.py: load_state()`, `_backup_invalid_state()`, `save_state()` |
@@ -202,12 +223,15 @@ python3 -m unittest discover -v
 
 | 책임 | 대표 테스트 |
 | --- | --- |
-| 메뉴 출력·종료 | [`test_menu_output_matches_the_five_documented_options`](tests/test_menu.py) |
+| 메뉴 출력·종료 | [`test_menu_output_matches_the_six_documented_options`](tests/test_menu.py) |
 | 정수 범위 검증 | [`test_integer_input_accepts_minimum_and_maximum_boundaries`](tests/test_menu.py) |
 | 정답 판정 | [`test_accepts_first_and_last_answer_boundaries`](tests/test_quiz.py) |
 | 최고 점수 갱신·저장 | [`test_new_best_score_is_saved_immediately`](tests/test_play.py) |
 | 저장 실패 안내 | [`test_new_best_score_reports_immediate_save_failure`](tests/test_play.py) |
 | 손상 파일 백업·복구 | [`test_corrupted_state_recovers_and_rewrites_valid_json`](tests/test_game_features.py) |
+| 랜덤 출제·문제 수 선택 | `test_questions_are_shuffled_before_selection`, `test_player_selects_question_count` |
+| 힌트 감점·게임 기록 | `test_hint_is_shown_once_and_deducts_ten_points`, `test_every_completed_game_is_saved_to_history` |
+| 퀴즈 삭제 영속성 | `test_delete_quiz_persists_after_reload` |
 
 ## 6. 프로그램 호출 흐름
 
@@ -215,13 +239,15 @@ python3 -m unittest discover -v
 main.py
 └─ QuizGame 생성
    └─ load_state
-      ├─ state.json 없음 → 기본 퀴즈 사용
-      ├─ 정상 파일 → 스키마 검증 → Quiz 객체 복원
-      └─ 손상 파일 → 버전 백업 → 기본 퀴즈 복구 → save_state
+      ├─ state.json 없음 → 기본 퀴즈 18개 사용
+      ├─ 정상 파일 → v1/v2 스키마 검증 → Quiz·점수·기록 복원
+      └─ 손상 파일 → 버전 백업 → 기본 퀴즈 18개 복구 → save_state
 
 QuizGame.run
 ├─ 메뉴 입력 검증
-├─ play_quiz / add_quiz / list_quizzes / show_best_score
+├─ play_quiz → 문제 수 선택 → shuffle → 힌트·채점 → 기록 저장
+├─ add_quiz / list_quizzes / delete_quiz
+├─ show_best_score → 최고 점수와 전체 게임 기록
 └─ 정상 종료·Ctrl+C·EOF
    └─ finally → save_state
 ```
@@ -234,15 +260,13 @@ sequenceDiagram
     participant F as state.json
     G->>F: load_state()
     F-->>G: JSON 파싱·검증 결과
-    U->>G: 메뉴 및 정답 입력
+    U->>G: 문제 수 선택 및 정답 또는 h 입력
     G->>Q: format_question(), is_correct()
     Q-->>G: 표시 문자열·판정 결과
-    G->>G: 점수 계산·최고 기록 비교
-    alt 새 최고 점수
-        G->>F: save_state() 즉시 저장
-        F-->>G: 성공 또는 실패
-        G-->>U: 저장 결과 안내
-    end
+    G->>G: 힌트 감점·최고 점수 비교·히스토리 추가
+    G->>F: 완료한 모든 게임을 즉시 save_state()
+    F-->>G: 성공 또는 실패
+    G-->>U: 점수와 저장 결과 안내
     U->>G: 종료 / Ctrl+C / EOF
     G->>F: finally에서 최종 save_state()
 ```
@@ -307,54 +331,61 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 
 ```json
 {
+  "schema_version": 2,
   "quizzes": [
     {
       "question": "문제 내용",
       "choices": ["선택지 1", "선택지 2", "선택지 3", "선택지 4"],
-      "answer": 2
+      "answer": 2,
+      "hint": "정답을 직접 말하지 않는 도움말"
     }
   ],
   "best_score": {
     "correct": 4,
     "total": 6,
-    "percentage": 67
-  }
+    "percentage": 57,
+    "hints_used": 1
+  },
+  "score_history": [
+    {
+      "played_at": "2026-08-13T10:00:00+09:00",
+      "correct": 4,
+      "total": 6,
+      "hints_used": 1,
+      "percentage": 57
+    }
+  ]
 }
 ```
 
 | 필드 | 필수 여부 | 의도와 검증 규칙 |
 | --- | --- | --- |
+| `schema_version` | v2 저장 시 필수 | 현재 형식은 2, 필드가 없는 이전 파일은 v1로 읽음 |
 | `quizzes` | 필수 | 퀴즈 객체 목록이며, 각 항목은 `Quiz.from_dict()`로 검증 |
 | `question` | 필수 | 공백이 아닌 문제 문자열 |
 | `choices` | 필수 | 비어 있지 않고 서로 다른 문자열 정확히 4개 |
 | `answer` | 필수 | 1부터 4 사이의 정수 |
+| `hint` | v2 필수 | 공백이 아닌 문자열, v1에서 없으면 `힌트가 없습니다.` 사용 |
 | `best_score` | 선택 | 없거나 아직 플레이하지 않았으면 `null`, 아니면 점수 객체 |
+| `score_history` | v2 필수 | 완료한 모든 게임 기록, v1에서 없으면 빈 목록 사용 |
+| `played_at` | 기록에서 필수 | 시간대가 포함된 ISO 8601 날짜·시간 |
 | `correct` | 점수 객체에서 필수 | 0 이상이고 `total` 이하인 정답 수 |
 | `total` | 점수 객체에서 필수 | 1 이상의 전체 문제 수 |
 | `percentage` | 점수 객체에서 필수 | 0부터 100 사이의 정수 점수 |
+| `hints_used` | v2 점수·기록에서 필수 | 0부터 푼 문제 수 사이의 힌트 사용 횟수 |
 
-최상위 `best_score`만 이전 파일과의 호환을 위해 생략할 수 있고, 나머지 현재
-필드는 해당 객체 안에서 필수입니다. 앞으로 힌트, 카테고리, 태그를 추가한다면
-이전 파일도 읽을 수 있도록 선택 필드로 시작하고 기본값을 제공해야 합니다.
-
-현재 파일 형식은 `schema_version` 필드가 없는 암묵적 v1으로 취급합니다.
-스키마가 커질 때는 최상위에 `schema_version`을 추가합니다. 로드 시 버전을
-확인해 이전 버전에는 기본값을 채우거나 순서대로 마이그레이션하고, 프로그램이
-지원하는 버전보다 새 버전이면 원본을 변경하지 않은 채 안내 후 중단하는 것이
-안전합니다.
-
-예를 들어 v2에 선택 필드인 `category`를 추가할 때는 v1을 로드한
-후 각 문제에 `"category": "미분류"`를 채워 넣고 `schema_version` 값을 2로
-올립니다. 마이그레이션 전에 원본을 백업하고, 변환 후 `Quiz.from_dict()`
-검증과 저장·재로드 테스트를 통과한 데이터만 새 파일로 교체합니다.
-현재는 평가를 통과한 v1 형식을 유지하며, 카테고리를 즉시 추가해 기존
-상태 파일과의 호환성을 변경하지 않습니다.
+현재는 힌트와 점수 히스토리를 추가한 v2입니다. `schema_version`, `hint`,
+`score_history`가 없는 기존 파일은 v1으로 보고, 힌트에는 호환 기본값을,
+히스토리에는 빈 목록을 적용합니다. 다음 저장부터 v2 형식으로 기록됩니다.
+지원하지 않는 미래 버전은 손상 데이터로 취급해 기존 백업·복구 정책을
+적용합니다. `test_old_state_without_new_fields_remains_compatible`가 v1 호환을
+검증합니다.
 
 ### 7.4 읽기, 저장, 복구 순서
 
 읽을 때는 파일 존재 확인, JSON 파싱, 최상위 객체 확인, `quizzes` 목록 확인,
-각 퀴즈 검증, 최고 점수 검증 순서로 진행합니다. 모든 검증을 통과한 데이터만
-현재 상태로 사용합니다.
+버전 확인, 각 퀴즈 검증, 최고 점수 검증, 전체 게임 기록 검증 순서로
+진행합니다. 모든 검증을 통과한 데이터만 현재 상태로 사용합니다.
 
 저장할 때는 현재 객체를 사전으로 변환하고 같은 폴더의 임시 파일에 UTF-8로
 전부 기록한 다음 `state.json`으로 교체합니다. 저장 도중 중단되어 원본이
@@ -363,9 +394,9 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 정상 로드와 최고 점수 즉시 저장의 예시 로그는 다음과 같습니다.
 
 ```text
-[시작] state.json 존재 확인 → JSON 파싱 → quizzes/best_score 검증 → 로드 완료
-[갱신] 새로운 최고 점수 → .state.json.tmp 전체 기록 → state.json 교체
-[결과] ✅ 최고 점수가 상태 파일에 저장되었습니다.
+[시작] state.json 확인 → v1/v2 파싱 → quizzes/best_score/score_history 검증
+[완료] 게임 기록 추가 → 최고 점수 비교 → .state.json.tmp 전체 기록
+[교체] 임시 파일 → state.json 원자적 교체 → 저장 결과 안내
 ```
 
 오류 메시지는 `[문제] + [대상] + [복구 행동]`의 순서로 안내합니다.
@@ -375,7 +406,7 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 
 | 예외·오류 | 대응 |
 | --- | --- |
-| 파일 없음 | 기본 퀴즈 6개와 미응시 점수 사용 |
+| 파일 없음 | 기본 퀴즈 18개, 미응시 점수와 빈 히스토리 사용 |
 | JSON 문법 오류 | 손상 파일을 백업한 뒤 기본 데이터로 복구하고 정상 JSON 재작성 |
 | 타입·범위·스키마 오류 | 잘못된 상태를 백업하고 기본 데이터로 복구 |
 | 읽기 운영체제 오류 | 원인을 안내하고 가능한 경우 원본 백업 후 복구 시도 |
@@ -397,7 +428,7 @@ JSON은 사람이 직접 읽고 수정하기 쉬운 텍스트 형식이고 Pytho
 
 - 안내 메시지에 원인과 `state.json.broken-날짜.bak` 경로가 보이는지
 - 백업 파일의 내용이 손상된 원본과 같고, 최대 3개만 남았는지
-- 새 `state.json`이 유효한 UTF-8 JSON이고 기본 퀴즈가 6개인지
+- 새 `state.json`이 유효한 UTF-8 JSON이고 기본 퀴즈가 18개인지
 - 프로그램을 재실행해 복구된 파일이 다시 정상 로드되는지
 - `python3 -m unittest tests.test_game_features -v`가 통과하는지
 
@@ -527,10 +558,10 @@ Type(Scope): 50자 안팎의 변경 요약
 
 재현 가능한 측정 결과와 100ms·10MiB 전환 검토 기준은
 [JSON 상태 벤치마크](docs/state-benchmark.md)에 있습니다. 2026-08-12
-Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
+Apple Silicon Mac·Python 3.9.6에서 v2 스키마를 11회 측정한 중앙값과 p95로
 1,000개는
-약 215.9KiB, 저장 5.06ms(p95 9.82ms), 로드 8.48ms(p95 8.79ms),
-로드 피크 1.09MiB였습니다.
+약 255.9KiB, 저장 6.66ms(p95 7.53ms), 로드 9.42ms(p95 9.90ms),
+로드 피크 1.28MiB였습니다.
 
 ## 10. 요구 변경 시 수정 위치
 
@@ -539,8 +570,10 @@ Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
 | 정답 판정 규칙 변경 | `quiz.py`의 `is_correct()` | `tests/test_quiz.py` |
 | 선택지 수 변경 | `Quiz.__post_init__()`, 입력·표시 로직, JSON 스키마 | 모델·등록·플레이 테스트 |
 | 점수 계산 변경 | `play_quiz()`, `_is_new_best()` | `test_all_correct_answers_set_best_score`, `test_lower_score_does_not_replace_best` |
+| 힌트 감점 변경 | `HINT_PENALTY`, `_read_answer_with_hint()`, `play_quiz()` | `test_hint_is_shown_once_and_deducts_ten_points` |
 | 메뉴 기능 추가 | `MENU`, `run()`의 `actions` | `tests/test_menu.py` |
 | 새 저장 필드 추가 | `to_dict()`, `from_dict()`, `load_state()`, `save_state()` | `test_save_and_reload_preserves_quizzes_and_score`와 손상 복구 테스트 |
+| 게임 기록 구조 변경 | `_validate_score_history()`, `play_quiz()`, `show_best_score()` | `test_every_completed_game_is_saved_to_history` |
 | 백업 정책 추가 | `_backup_invalid_state()`, `save_state()` | `tests/test_game_features.py`의 백업·저장 테스트 |
 | 검색 기능 추가 | `QuizGame`의 검색 메서드와 인덱스 | 신규 검색 테스트 |
 
@@ -569,10 +602,10 @@ Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
 
 | 항목 | 후속 보강 | 검증 위치 |
 | --- | --- | --- |
-| #1 | 메뉴 5개 실제 출력 계약 테스트 | `tests/test_menu.py` |
-| #2 | 메뉴 1·5와 정답 1·4 경계값 테스트 | `tests/test_menu.py`, `tests/test_quiz.py` |
+| #1 | 보너스 삭제를 포함한 메뉴 6개 실제 출력 계약 테스트 | `tests/test_menu.py` |
+| #2 | 메뉴 1·6과 정답 1·4 경계값 테스트 | `tests/test_menu.py`, `tests/test_quiz.py` |
 | #3 | 최고 점수 즉시 저장의 성공·실패 로그 테스트 | `quiz_game.py`, `tests/test_play.py` |
-| #4 | 평가를 통과한 v1 호환성은 유지하고 category는 v2 마이그레이션 절차로 설계 | 7.3 |
+| #4 | 기본 18문제와 힌트 제공, 기존 v1 JSON 호환 유지 | 3.1, 7.3 |
 | #5 | 후속 커밋 전 로컬·원격 20개 스냅샷과 갱신 명령 | 8.1, `docs/git-evidence.txt` |
 | #6 | `git merge --no-ff` 재현 명령 | 8.2 |
 | #7 | 증빙별 캡션·텍스트 결과와 Git 그래프 인라인 이미지 | 8.1, 12 |
@@ -585,7 +618,7 @@ Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
 | #14 | 10·100·1,000·5,000개 JSON 크기·시간·메모리 측정 | 9, `docs/state-benchmark.md` |
 | #15 | `문제 + 대상 + 복구 행동` 오류 문구 템플릿 | 7.4 |
 | #16 | `<type>/<short-topic>` 브랜치 네이밍 규칙 | 8.2 |
-| #17 | v1에서 category 기본값을 채우는 v2 마이그레이션 예시 | 7.3 |
+| #17 | 힌트·전체 기록을 포함한 v2와 v1 호환 기본값 구현 | 7.3 |
 | #18 | 측정 수치와 100ms·10MiB 전환 검토 기준 | 9, `docs/state-benchmark.md` |
 | #19 | 백업, 재작성 JSON, 재로드, 자동 테스트 복구 체크리스트 | 7.4 |
 | #20 | 변경 파일·함수·관련 테스트의 영향 범위 매핑 | 5.5, 10 |
@@ -596,7 +629,7 @@ Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
 
 | 증빙 | 링크 | 캡션과 확인 내용 |
 | --- | --- | --- |
-| Python 개발 환경과 테스트 | [01-development-environment.png](docs/screenshots/01-development-environment.png) | 초기 Python 버전과 당시 `unittest discover` 통과 결과. 현재는 23개 테스트 통과 |
+| Python 개발 환경과 테스트 | [01-development-environment.png](docs/screenshots/01-development-environment.png) | 초기 Python 버전과 당시 테스트 결과. 현재는 34개 자동 테스트 통과 |
 | 퀴즈 추가 및 저장 | [02-add-quiz.png](docs/screenshots/02-add-quiz.png) | 메뉴 2에서 문제·선택지·정답을 입력하고 저장한 결과 |
 | 퀴즈 목록 | [03-quiz-list.png](docs/screenshots/03-quiz-list.png) | 메뉴 3에서 저장된 퀴즈를 다시 읽어 출력한 결과 |
 | 퀴즈 플레이와 최고 점수 | [04-play-and-score.png](docs/screenshots/04-play-and-score.png) | 메뉴 1 채점 결과와 메뉴 4 최고 점수 유지 확인 |
@@ -616,11 +649,12 @@ Apple Silicon Mac·Python 3.11.13에서 11회 측정의 중앙값과 p95로
 
 #### 1) 메뉴와 퀴즈 풀기·추가·목록·점수 확인이 모두 동작하는가?
 
-**네. `QuizGame.run()`이 1~5번 메뉴를 반복해서 보여 주고, 선택 번호에 따라
+**네. `QuizGame.run()`이 1~6번 메뉴를 반복해서 보여 주고, 선택 번호에 따라
 각 기능 메서드를 호출합니다.** 1번은 `play_quiz()`, 2번은 `add_quiz()`,
-3번은 `list_quizzes()`, 4번은 `show_best_score()`, 5번은 종료입니다.
+3번은 `list_quizzes()`, 4번은 `show_best_score()`, 5번은 `delete_quiz()`,
+6번은 종료입니다.
 메뉴 계약과 주요 기능은 `tests/test_menu.py`, `tests/test_play.py`,
-`tests/test_game_features.py`에서 검증하며 전체 자동 테스트는 23개입니다.
+`tests/test_game_features.py`에서 검증하며 전체 자동 테스트는 34개입니다.
 
 확인 명령:
 
@@ -635,11 +669,12 @@ python3 -m unittest discover -v
 입력 검증은 `QuizGame._read_int()`와 `_read_non_empty()`가 담당합니다.**
 빈 입력은 재입력, 문자는 정수 변환 실패 안내 후 재입력, 범위 밖 숫자는
 허용 범위를 안내한 뒤 재입력합니다. 문제와 선택지는 공백 입력을 허용하지
-않으며 중복 선택지도 다시 받습니다. 메뉴 1·5와 정답 1·4 경계값도 테스트합니다.
+않으며 중복 선택지도 다시 받습니다. 메뉴 1·6과 정답 1·4 경계값도 테스트합니다.
 
 #### 3) 재실행해도 추가 퀴즈와 최고 점수가 유지되는가?
 
-**네. 추가 또는 최고 점수 갱신 직후 `save_state()`가 `state.json`에 저장하고,
+**네. 추가·삭제 또는 게임 완료 직후 `save_state()`가 퀴즈, 최고 점수와
+전체 기록을 `state.json`에 저장하고,
 다음 실행의 `QuizGame.__init__()`에서 `load_state()`가 다시 읽습니다.**
 프로그램 종료 시에도 `finally`에서 한 번 더 저장합니다.
 `test_save_and_reload_preserves_quizzes_and_score`가 새 객체를 만들어 재로드한
@@ -647,8 +682,8 @@ python3 -m unittest discover -v
 
 #### 4) 기본 퀴즈가 5개 이상인가?
 
-**네. `defaults.py`에 AI와 Python 기초 퀴즈 6개가 정의되어 있어 최소 5개
-기준을 충족합니다.** 상태 파일이 없거나 복구가 필요할 때도 이 6개를
+**네. `defaults.py`에 AI와 Python 기초 퀴즈 18개가 정의되어 있어 최소 5개
+기준의 3배 이상을 충족합니다.** 상태 파일이 없거나 복구가 필요할 때도 이 18개를
 기본값으로 사용합니다.
 
 #### 5) GitHub 업로드와 10개 이상의 의미 있는 커밋을 확인할 수 있는가?
@@ -687,9 +722,10 @@ git log --oneline --graph --decorate --all
 #### 8) `Quiz`와 `QuizGame`의 책임을 어떻게 나눴는가?
 
 **`Quiz`는 문제 한 개의 데이터와 규칙을, `QuizGame`은 여러 문제를 이용한
-전체 실행 흐름을 맡습니다.** `Quiz`는 문제·선택지·정답, 유효성 검증,
+전체 실행 흐름을 맡습니다.** `Quiz`는 문제·선택지·정답·힌트, 유효성 검증,
 정답 판정과 JSON 변환을 담당합니다. `QuizGame`은 메뉴, 사용자 입력,
-출제·점수, 목록, 추가, 상태 저장·복구를 담당합니다. 한 문제의 규칙과
+출제·힌트 감점·점수 기록, 목록, 추가·삭제, 상태 저장·복구를 담당합니다.
+한 문제의 규칙과
 애플리케이션 전체 흐름을 분리한 것입니다.
 
 #### 9) 입력 검증·게임 진행·저장 로직을 어떤 기준으로 분리했는가?
@@ -705,7 +741,7 @@ git log --oneline --graph --decorate --all
 **실행 시에는 생성자에서 읽고, 데이터 변경 직후와 종료 시에는 저장합니다.**
 읽기는 `main()` → `QuizGame.__init__()` → `load_state()` 순서이며, 파일 존재
 확인 → JSON 파싱 → 최상위 구조 → 퀴즈 → 최고 점수 순으로 검증합니다.
-쓰기는 퀴즈 추가 직후, 새 최고 점수 갱신 직후, `run()`의 `finally`에서
+쓰기는 퀴즈 추가·삭제 직후, 모든 게임 완료 직후, `run()`의 `finally`에서
 `save_state()`를 호출합니다. 저장할 때 임시 파일을 완성한 뒤 원본 경로로
 교체해 불완전한 파일이 남을 위험을 줄입니다.
 
@@ -760,11 +796,12 @@ Python `dict`, 배열은 `list`, 문자열과 숫자는 `str`·`int`에 자연�
 
 #### 17) 현재 `state.json` 구조를 이렇게 설계한 이유는 무엇인가?
 
-**여러 문제와 하나의 최고 점수를 함께 저장해야 하므로 최상위 객체에
-`quizzes` 목록과 `best_score` 객체를 분리했습니다.** 각 퀴즈에는
-`question`, 선택지 배열인 `choices`, 정답 번호인 `answer`가 있습니다.
+**여러 문제, 최고 점수와 모든 게임 기록을 함께 저장해야 하므로 최상위에
+`quizzes`, `best_score`, `score_history`를 분리했습니다.** 각 퀴즈에는
+`question`, 선택지 배열인 `choices`, 정답 번호인 `answer`, `hint`가 있습니다.
 최고 점수에는 정답 수 `correct`, 전체 수 `total`, 비교와 표시가 쉬운
-`percentage`를 함께 저장합니다. 중첩 구조는 데이터의 소속을 명확히 하고
+`percentage`, `hints_used`를 함께 저장합니다. 각 히스토리에는 ISO 날짜·시간도
+기록합니다. 중첩 구조는 데이터의 소속을 명확히 하고
 Python 객체와 변환하기 쉽습니다.
 
 ### 항목 4. 심층 인터뷰
@@ -808,6 +845,37 @@ git log --oneline --graph --decorate --all
 git status --short --branch
 ```
 
-평가 시에는 자동 테스트 결과뿐 아니라 `python3 main.py`를 실행해 메뉴 1~5,
-잘못된 입력 재시도, 퀴즈 추가 후 재실행, 최고 점수 유지까지 짧게 시연하면
-기능·설계·Git 증빙을 한 흐름으로 설명할 수 있습니다.
+평가 시에는 자동 테스트 결과뿐 아니라 `python3 main.py`를 실행해 메뉴 1~6,
+문제 수 선택, 랜덤 출제, `h` 힌트 감점, 추가·삭제 후 재실행, 전체 기록
+유지까지 짧게 시연하면 기능·설계·Git 증빙을 한 흐름으로 설명할 수 있습니다.
+
+## 14. 보너스 기능 설명용 짧은 답변
+
+### 랜덤 출제는 어떻게 구현했는가?
+
+원본 퀴즈 목록을 보호하기 위해 `list(self.quizzes)`로 복사한 뒤
+`random.shuffle()`로 순서를 섞습니다. 테스트에서는 섞기 함수를 주입해
+실제로 문제 수 선택 전에 호출되는지 검증합니다.
+
+### 문제 수 선택은 어떻게 구현했는가?
+
+플레이 시작 시 `_read_int()`로 `1`부터 현재 문제 수까지 입력받고, 무작위로
+섞인 목록에서 선택한 개수만 슬라이싱합니다. 범위 밖 입력은 다시 받습니다.
+
+### 힌트와 감점은 어떻게 동작하는가?
+
+각 `Quiz`가 `hint`를 보관합니다. 정답 입력에서 `h`를 누르면 문제당 한 번만
+힌트를 보여 주고 사용 횟수를 올립니다. 원점수에서 `힌트 수 × 10점`을 빼되
+최종 점수는 0점 아래로 내려가지 않습니다.
+
+### 삭제 실패 시 데이터는 어떻게 보호하는가?
+
+선택한 퀴즈를 목록에서 제거한 뒤 원자적 JSON 저장을 시도합니다. 저장에
+실패하면 삭제한 객체를 원래 위치에 다시 넣어 메모리와 파일의 상태가 서로
+달라지지 않게 하고 사용자에게 삭제 취소를 안내합니다.
+
+### 모든 게임 기록은 무엇을 저장하는가?
+
+게임을 끝낼 때마다 `score_history`에 시간대가 포함된 ISO 8601 날짜·시간,
+정답 수, 푼 문제 수, 힌트 사용 수, 감점 후 최종 점수를 추가하고 즉시
+저장합니다. 최고 점수가 아니어도 기록되며 메뉴 4에서 전체 기록을 봅니다.

@@ -1,4 +1,5 @@
 {
+  "schema_version": 2,
   "quizzes": [
     {
       "question": "인공지능(AI)을 가장 잘 설명한 것은?",
@@ -8,7 +9,8 @@
         "인터넷 연결 방식",
         "컴퓨터 화면의 종류"
       ],
-      "answer": 2
+      "answer": 2,
+      "hint": "사람이 하던 판단·학습 같은 지적 작업을 떠올려 보세요."
     },
     {
       "question": "머신러닝에서 모델이 규칙을 학습할 때 주로 사용하는 것은?",
@@ -18,7 +20,8 @@
         "키보드 배열",
         "파일 이름"
       ],
-      "answer": 1
+      "answer": 1,
+      "hint": "모델이 예시를 보고 패턴을 찾을 때 필요한 재료입니다."
     },
     {
       "question": "생성형 AI가 할 수 있는 일의 예시는?",
@@ -28,7 +31,8 @@
         "새로운 글과 이미지 생성",
         "인터넷 요금 자동 인하"
       ],
-      "answer": 3
+      "answer": 3,
+      "hint": "생성형은 기존 것을 분류하는 데서 한 단계 더 나아갑니다."
     },
     {
       "question": "Python에서 여러 값을 순서대로 담는 자료형은?",
@@ -38,7 +42,8 @@
         "int",
         "str"
       ],
-      "answer": 2
+      "answer": 2,
+      "hint": "대괄호로 만들고 여러 항목의 순서를 유지하는 자료형입니다."
     },
     {
       "question": "Python의 if 문은 어떤 상황에 사용하는가?",
@@ -48,7 +53,8 @@
         "컴퓨터를 종료할 때만",
         "주석을 작성할 때"
       ],
-      "answer": 1
+      "answer": 1,
+      "hint": "참과 거짓에 따라 서로 다른 코드를 실행하는 문법입니다."
     },
     {
       "question": "AI가 만든 답을 사용할 때 가장 바람직한 태도는?",
@@ -58,8 +64,142 @@
         "틀려도 그대로 제출한다",
         "개인정보를 모두 입력한다"
       ],
-      "answer": 2
+      "answer": 2,
+      "hint": "AI도 틀릴 수 있으므로 근거를 확인해야 합니다."
+    },
+    {
+      "question": "Python에서 정수 값을 저장하는 자료형은?",
+      "choices": [
+        "str",
+        "int",
+        "list",
+        "dict"
+      ],
+      "answer": 2,
+      "hint": "소수점이 없는 숫자를 나타내는 자료형입니다."
+    },
+    {
+      "question": "Python에서 참과 거짓을 나타내는 자료형은?",
+      "choices": [
+        "bool",
+        "float",
+        "tuple",
+        "set"
+      ],
+      "answer": 1,
+      "hint": "True와 False 두 값을 사용합니다."
+    },
+    {
+      "question": "키와 값의 쌍으로 데이터를 저장하는 Python 자료형은?",
+      "choices": [
+        "list",
+        "str",
+        "dict",
+        "int"
+      ],
+      "answer": 3,
+      "hint": "중괄호 안에 이름과 값을 콜론으로 연결합니다."
+    },
+    {
+      "question": "반복 횟수나 순회할 목록이 정해져 있을 때 적합한 반복문은?",
+      "choices": [
+        "if",
+        "for",
+        "try",
+        "class"
+      ],
+      "answer": 2,
+      "hint": "목록의 항목을 하나씩 순회할 때 자주 사용합니다."
+    },
+    {
+      "question": "조건이 참인 동안 반복할 때 주로 사용하는 문장은?",
+      "choices": [
+        "while",
+        "return",
+        "import",
+        "elif"
+      ],
+      "answer": 1,
+      "hint": "반복 횟수보다 종료 조건이 중요한 경우를 생각해 보세요."
+    },
+    {
+      "question": "함수에서 계산 결과를 호출한 곳으로 돌려주는 키워드는?",
+      "choices": [
+        "break",
+        "return",
+        "continue",
+        "pass"
+      ],
+      "answer": 2,
+      "hint": "함수 실행 결과를 바깥에서 다시 사용하게 해 줍니다."
+    },
+    {
+      "question": "클래스로 객체를 만들 때 초기 속성을 설정하는 메서드는?",
+      "choices": [
+        "__init__",
+        "__str__",
+        "append",
+        "open"
+      ],
+      "answer": 1,
+      "hint": "객체 생성 직후 자동으로 호출되는 특별 메서드입니다."
+    },
+    {
+      "question": "인스턴스 메서드에서 현재 객체 자신을 가리키는 매개변수는?",
+      "choices": [
+        "this",
+        "self",
+        "object",
+        "current"
+      ],
+      "answer": 2,
+      "hint": "Python 인스턴스 메서드의 첫 번째 매개변수 관례입니다."
+    },
+    {
+      "question": "파일을 자동으로 닫아 주는 Python 파일 열기 방식은?",
+      "choices": [
+        "with open(...) as f",
+        "print(file)",
+        "import file",
+        "return open"
+      ],
+      "answer": 1,
+      "hint": "컨텍스트 관리자를 사용하면 블록을 벗어날 때 정리됩니다."
+    },
+    {
+      "question": "JSON 배열은 Python의 어떤 자료형과 자연스럽게 대응하는가?",
+      "choices": [
+        "bool",
+        "list",
+        "int",
+        "bytes"
+      ],
+      "answer": 2,
+      "hint": "순서가 있는 여러 값을 담는 자료형입니다."
+    },
+    {
+      "question": "예상 가능한 오류를 처리해 비정상 종료를 막는 문법은?",
+      "choices": [
+        "for/while",
+        "try/except",
+        "if/import",
+        "class/def"
+      ],
+      "answer": 2,
+      "hint": "예외가 발생할 수 있는 코드와 대응 코드를 나누는 문법입니다."
+    },
+    {
+      "question": "Git에서 선택한 변경을 하나의 이력으로 기록하는 명령은?",
+      "choices": [
+        "git clone",
+        "git pull",
+        "git commit",
+        "git checkout"
+      ],
+      "answer": 3,
+      "hint": "스테이징된 변경에 메시지를 붙여 버전으로 남깁니다."
     }
   ],
-  "best_score": null
+  "best_score": null,
+  "score_history": []
 }

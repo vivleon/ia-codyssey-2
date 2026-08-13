@@ -11,6 +11,7 @@ class QuizTest(unittest.TestCase):
             "Python에서 목록을 표현하는 자료형은?",
             ["int", "str", "list", "bool"],
             3,
+            "대괄호를 사용하는 자료형입니다.",
         )
 
     def test_checks_answer(self) -> None:
@@ -29,6 +30,17 @@ class QuizTest(unittest.TestCase):
         restored = Quiz.from_dict(self.quiz.to_dict())
         self.assertEqual(restored, self.quiz)
 
+    def test_old_dictionary_without_hint_uses_compatible_default(self) -> None:
+        restored = Quiz.from_dict(
+            {
+                "question": "이전 형식 문제",
+                "choices": ["하나", "둘", "셋", "넷"],
+                "answer": 1,
+            }
+        )
+
+        self.assertEqual(restored.hint, "힌트가 없습니다.")
+
     def test_rejects_invalid_choice_count(self) -> None:
         with self.assertRaises(ValueError):
             Quiz("문제", ["하나", "둘"], 1)
@@ -36,6 +48,14 @@ class QuizTest(unittest.TestCase):
     def test_rejects_duplicate_choices(self) -> None:
         with self.assertRaises(ValueError):
             Quiz("문제", ["같음", "같음", "셋", "넷"], 1)
+
+    def test_rejects_empty_hint(self) -> None:
+        with self.assertRaises(ValueError):
+            Quiz("문제", ["하나", "둘", "셋", "넷"], 1, " ")
+
+    def test_rejects_non_string_hint(self) -> None:
+        with self.assertRaises(ValueError):
+            Quiz("문제", ["하나", "둘", "셋", "넷"], 1, 123)
 
     def test_formats_question(self) -> None:
         rendered = self.quiz.format_question(2)
