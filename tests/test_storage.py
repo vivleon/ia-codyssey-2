@@ -59,6 +59,27 @@ class StorageTest(unittest.TestCase):
 
         self.assertIn("quizzes", repaired)
 
+    def test_wrong_history_is_recovered(self):
+        # 시간대가 없는 게임 기록은 잘못된 상태로 처리한다.
+        quizzes, best_score, history = load_state(self.filename)
+        history.append(
+            {
+                "played_at": "2026-08-14T10:00:00",
+                "correct": 1,
+                "total": 1,
+                "percentage": 100,
+                "hints_used": 0,
+            }
+        )
+        save_state(self.filename, quizzes, best_score, history)
+
+        with patch("builtins.print"):
+            new_quizzes, new_best, new_history = load_state(self.filename)
+
+        self.assertEqual(len(new_quizzes), 18)
+        self.assertIsNone(new_best)
+        self.assertEqual(new_history, [])
+
 
 if __name__ == "__main__":
     unittest.main()

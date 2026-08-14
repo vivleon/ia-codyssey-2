@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+from datetime import datetime
 
 from defaults import get_default_quizzes
 from quiz import Quiz
@@ -15,6 +16,50 @@ def make_new_state():
     score_history = []
 
     return quizzes, best_score, score_history
+
+
+def check_score(score):
+    """점수 dict의 숫자와 범위가 올바른지 확인한다."""
+    if not isinstance(score, dict):
+        raise ValueError("점수 데이터가 올바르지 않습니다.")
+
+    correct = score.get("correct")
+    total = score.get("total")
+    percentage = score.get("percentage")
+    hints_used = score.get("hints_used", 0)
+
+    numbers = [correct, total, percentage, hints_used]
+
+    if not all(type(number) is int for number in numbers):
+        raise ValueError("점수는 숫자여야 합니다.")
+
+    if total < 1 or correct < 0 or correct > total:
+        raise ValueError("정답 수가 올바르지 않습니다.")
+
+    if percentage < 0 or percentage > 100:
+        raise ValueError("점수 범위가 올바르지 않습니다.")
+
+    if hints_used < 0 or hints_used > total:
+        raise ValueError("힌트 수가 올바르지 않습니다.")
+
+
+def check_history(score_history):
+    """모든 게임 기록의 점수와 날짜를 확인한다."""
+    if not isinstance(score_history, list):
+        raise ValueError("점수 기록 데이터가 올바르지 않습니다.")
+
+    for record in score_history:
+        check_score(record)
+
+        played_at = record.get("played_at")
+
+        if not isinstance(played_at, str):
+            raise ValueError("게임 날짜가 올바르지 않습니다.")
+
+        played_time = datetime.fromisoformat(played_at)
+
+        if played_time.tzinfo is None:
+            raise ValueError("게임 날짜에 시간대가 없습니다.")
 
 
 def load_state(filename):
@@ -37,11 +82,10 @@ def load_state(filename):
         score_history = data.get("score_history", [])
 
         # JSON 문법은 맞아도 내용이 틀릴 수 있으므로 확인한다.
-        if best_score is not None and not isinstance(best_score, dict):
-            raise ValueError("최고 점수 데이터가 올바르지 않습니다.")
+        if best_score is not None:
+            check_score(best_score)
 
-        if not isinstance(score_history, list):
-            raise ValueError("점수 기록 데이터가 올바르지 않습니다.")
+        check_history(score_history)
 
         print("저장된 데이터를 불러왔습니다.")
         return quizzes, best_score, score_history

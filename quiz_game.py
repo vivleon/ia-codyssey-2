@@ -245,9 +245,13 @@ class QuizGame:
 
         new_quiz = Quiz(question, choices, answer, hint)
         self.quizzes.append(new_quiz)
-        self.save()
 
-        print("퀴즈가 추가되었습니다!")
+        if self.save():
+            print("퀴즈가 추가되었습니다!")
+        else:
+            # 저장할 수 없으면 목록도 추가하기 전으로 되돌린다.
+            self.quizzes.pop()
+            print("저장에 실패하여 퀴즈 추가를 취소했습니다.")
 
     def list_quizzes(self):
         """등록된 퀴즈 목록을 보여 준다."""
