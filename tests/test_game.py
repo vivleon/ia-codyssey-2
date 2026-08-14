@@ -43,11 +43,13 @@ class GameTest(unittest.TestCase):
         game.quizzes = game.quizzes[:1]
 
         # 1문제를 고르고, 힌트를 본 뒤 정답 2번을 고른다.
-        with patch("random.shuffle"):
+        with patch("random.shuffle") as fake_shuffle:
             with patch("builtins.input", side_effect=["1", "h", "2"]):
                 with patch("builtins.print"):
                     game.play_quiz()
 
+        fake_shuffle.assert_called_once()
+        self.assertEqual(game.best_score["total"], 1)
         self.assertEqual(game.best_score["percentage"], 90)
         self.assertEqual(game.best_score["hints_used"], 1)
         self.assertEqual(len(game.score_history), 1)
