@@ -1,53 +1,70 @@
 IA Codyssey Quiz Game - Git Evidence
-Verified: 2026-08-12
-Snapshot: before the 100-percent evaluation follow-up commit
+Verified: 2026-08-14
+
+1. Remote repository
 
 $ git remote get-url origin
 https://github.com/vivleon/ia-codyssey-2.git
 
-$ git branch --show-current
-main
+2. Beginner rebuild branch
+
+$ git branch --list
+  codex/quiz-play
+  codex/simple-quiz-rebuild
+* main
+
+The rebuild was implemented in:
+codex/simple-quiz-rebuild
+
+The branch was pushed to GitHub before it was merged.
+
+3. Pull before merge
+
+$ git pull --ff-only origin main
+Already up to date.
+
+4. Non-fast-forward merge
+
+$ git merge --no-ff codex/simple-quiz-rebuild \
+    -m "Merge: 초보자용 퀴즈 게임 전면 재작성"
+
+Merge commit before this evidence update:
+8016b24 Merge: 초보자용 퀴즈 게임 전면 재작성
+
+5. Recent graph
+
+*   8016b24 Merge: 초보자용 퀴즈 게임 전면 재작성
+|\
+| * 17851fa Refactor(beginner): 검증 로직을 for와 if로 단순화
+| * 8a489c6 Test(bonus): 랜덤 출제와 문제 수 선택 확인
+| * 24e28a0 Docs(beginner): 새 구조와 과제 설명을 간단히 정리
+| * 3c54291 Fix(storage): 저장 실패와 손상 기록을 안전하게 처리
+| * b19b089 Test(beginner): 필수 기능과 보너스 동작 검증
+| * 680f267 Refactor(beginner): 퀴즈 게임을 기초 문법으로 재작성
+|/
+* ca228e2 Docs(code): 초보자용 원리 주석 보강
+
+6. Commit count
 
 $ git rev-list --count HEAD
-20
+33
 
-$ git rev-parse HEAD
-3c488579213827d740caf431f838de0156678f5f
+This snapshot was taken before the evidence update commit. The evidence commit
+increases the count to 34, which is greater than the required 10 commits.
 
-$ git rev-parse origin/main
-3c488579213827d740caf431f838de0156678f5f
+7. Earlier clone and pull practice
 
-$ git ls-remote --heads origin
-2428fde31a8ae2803dd2a7613e45767a81863636 refs/heads/codex/quiz-play
-3c488579213827d740caf431f838de0156678f5f refs/heads/main
+The repository already contains the earlier practice record:
+272f5fe Docs: clone과 pull 실습 완료 기록
 
-$ git log --oneline --graph --decorate --all
-* 3c48857 (HEAD -> main, origin/main, origin/HEAD) Docs(evidence): 게시 상태 현재형으로 정리
-* 65a6e34 Fix(evaluation): 사전평가 보완 및 상태 복구 강화
-* 428e40d Docs: 제출용 실행 증빙 스크린샷 추가
-* 272f5fe Docs: clone과 pull 실습 완료 기록
-* 5ed0d54 Docs: 실행 방법과 구조 및 데이터 설명 작성
-* f2c8f2d Data: 기본 퀴즈 상태 파일 추가
-* 385e234 Test: 영속성과 등록 조회 통합 검증 추가
-* ca3fa18 Feat: 최고 점수 조회 화면 구현
-* aa7cbaa Feat: 저장된 퀴즈 목록 조회 구현
-* f4f7162 Test: 상태 파일을 임시 경로로 격리
-* 3f0639b Feat: 입력 검증을 포함한 퀴즈 추가 구현
-* 28ff3a3 Feat: state.json 영속성과 손상 복구 구현
-*   9a0d68d Merge: 퀴즈 플레이 브랜치 통합
-|\
-| * 2428fde (origin/codex/quiz-play, codex/quiz-play) Test: 퀴즈 플레이와 최고 점수 검증 추가
-| * 13788ad Feat: 무작위 퀴즈 출제와 채점 구현
-|/
-* 707b039 Feat: 안전한 메뉴와 공통 입력 처리 구현
-* 738b404 Feat: AI와 Python 기본 퀴즈 6개 추가
-* 2708c52 Feat: Quiz 모델과 검증 로직 구현
-* 744d5dc Chore: Python 프로젝트 구조 설정
-* 2db2fa5 Initial commit
+Related screenshot:
+docs/screenshots/05-git-log-graph.png
 
-Result:
-- Remote repository is configured and reachable.
-- Before the follow-up work, local and remote main contained 20 meaningful commits.
-- The follow-up commit increases the local count to at least 21, exceeding the required 10.
-- The codex/quiz-play branch and the non-fast-forward merge are visible in history.
-- Run the commands above again after publishing to refresh the remote snapshot.
+8. Verification commands
+
+$ python3 -m unittest discover -v
+Ran 13 tests
+OK
+
+$ git diff --check
+(no output: passed)
