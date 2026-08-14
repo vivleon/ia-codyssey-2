@@ -30,8 +30,9 @@ def check_score(score):
 
     numbers = [correct, total, percentage, hints_used]
 
-    if not all(type(number) is int for number in numbers):
-        raise ValueError("점수는 숫자여야 합니다.")
+    for number in numbers:
+        if type(number) is not int:
+            raise ValueError("점수는 숫자여야 합니다.")
 
     if total < 1 or correct < 0 or correct > total:
         raise ValueError("정답 수가 올바르지 않습니다.")

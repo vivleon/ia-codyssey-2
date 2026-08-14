@@ -11,11 +11,19 @@ class Quiz:
         if not isinstance(choices, list) or len(choices) != 4:
             raise ValueError("선택지는 4개여야 합니다.")
 
-        if not all(isinstance(choice, str) and choice.strip() for choice in choices):
-            raise ValueError("선택지는 비어 있을 수 없습니다.")
+        clean_choices = []
 
-        if len(set(choices)) != 4:
-            raise ValueError("선택지는 서로 달라야 합니다.")
+        # for와 if를 사용해 선택지를 하나씩 확인한다.
+        for choice in choices:
+            if not isinstance(choice, str) or not choice.strip():
+                raise ValueError("선택지는 비어 있을 수 없습니다.")
+
+            clean_choice = choice.strip()
+
+            if clean_choice in clean_choices:
+                raise ValueError("선택지는 서로 달라야 합니다.")
+
+            clean_choices.append(clean_choice)
 
         if type(answer) is not int or answer < 1 or answer > 4:
             raise ValueError("정답은 1부터 4 사이의 숫자여야 합니다.")
@@ -25,7 +33,7 @@ class Quiz:
 
         # self는 지금 만들어진 Quiz 객체 자신을 뜻한다.
         self.question = question.strip()
-        self.choices = [choice.strip() for choice in choices]
+        self.choices = clean_choices
         self.answer = answer
         self.hint = hint.strip()
 
@@ -59,6 +67,7 @@ class Quiz:
         if not isinstance(data, dict):
             raise ValueError("퀴즈 데이터가 올바르지 않습니다.")
 
+        # cls(...)는 새로운 Quiz 객체를 만든다.
         return cls(
             data.get("question", ""),
             data.get("choices", []),
